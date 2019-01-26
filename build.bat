@@ -1,1 +1,1 @@
-msbuild vs\Pixel\Pixel.sln /nologo /v:m /p:OutDir=..\..\build\
+msbuild vs\Pixel\Pixel.sln /nologo /v:m /p:OutDir=..\..\..\build\
