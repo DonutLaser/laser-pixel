@@ -141,15 +141,15 @@ void gl_init () {
 	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 }
 
-void gl_draw_rect (v4 rect, v4 color) {
+void gl_draw_rect (rect r, v4 color) {
 	glUseProgram (the_shader_color);
 
 	glEnable (GL_BLEND);
 	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	m4 model = make_identity ();
-	model = translate (model, make_v3 (rect.x, rect.y, 0.0f));
-	model = scale (model, make_v3 (rect.z, rect.w, 1.0f));
+	model = translate (model, make_v3 (r.x, r.y, 0.0f));
+	model = scale (model, make_v3 (r.width, r.height, 1.0f));
 
 	int model_loc = glGetUniformLocation (the_shader_color, "model");
 	glUniformMatrix4fv (model_loc, 1, GL_TRUE, (float*)model.value);

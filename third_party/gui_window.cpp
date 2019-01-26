@@ -427,7 +427,8 @@ bool input_is_mb_pressed (unsigned btn) {
 	}
 
 	bool result = the_input.mouse.state == state;
-	return !(!result || the_input.mouse.btn_was_down);
+	return result && the_input.mouse.btn_was_down;
+	// return !(!result || the_input.mouse.btn_was_down);
 }
 
 bool input_is_mb_up (unsigned btn) {

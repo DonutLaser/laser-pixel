@@ -20,7 +20,7 @@ GUI_MAIN {
 	pixel_input input;
 	while (wnd_update ()) {
 		input.mouse_pos = input_get_mouse_position ();
-		input.lmb_down = input_is_mb_down (M_LEFT);
+		input.lmb_down = input_is_mb_pressed (M_LEFT);
 		input.lmb_up = input_is_mb_up (M_LEFT);
 
 		pixel_update (input);
