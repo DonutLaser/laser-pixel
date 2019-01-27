@@ -158,7 +158,28 @@ static void draw_tools (pixel_input input) {
 }
 
 static void draw_buttons (pixel_input input) {
+	v2 start_pos = make_v2 (BUTTONS_POSITION);
 
+	rect clear_rect = make_rect (start_pos, CLEAR_BUTTON_WIDTH, SMALL_BUTTON_HEIGHT);
+	start_pos.x += CLEAR_BUTTON_WIDTH + INNER_MARGIN;
+
+	rect save_rect = make_rect (start_pos, SAVE_BUTTON_WIDTH, SMALL_BUTTON_HEIGHT);
+	start_pos.x += SAVE_BUTTON_WIDTH + INNER_MARGIN;
+
+	rect load_rect = make_rect (start_pos, LOAD_BUTTON_WIDTH, SMALL_BUTTON_HEIGHT);
+	start_pos.x += LOAD_BUTTON_WIDTH + INNER_MARGIN;
+
+	rect export_rect = make_rect (start_pos, EXPORT_BUTTON_WIDTH, SMALL_BUTTON_HEIGHT);
+	start_pos.x += EXPORT_BUTTON_WIDTH + INNER_MARGIN;
+
+	if (draw_button (clear_rect, input))
+		io_log ("Clear frame");
+	if (draw_button (save_rect, input))
+		io_log ("Save animation");
+	if (draw_button (load_rect, input))
+		io_log ("Load animation");
+	if (draw_button (export_rect, input))
+		io_log ("Export animation");
 }
 
 void pixel_init () {
@@ -170,4 +191,5 @@ void pixel_update (pixel_input input) {
 	draw_grid (input);
 	draw_colors (input);
 	draw_tools (input);
+	draw_buttons (input);
 }

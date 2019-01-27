@@ -88,6 +88,6 @@ static v4 colors[] = {
 #define GRID_POSITION				10, 39
 #define COLORS_POSITION				275, 39
 #define TOOLS_POSITION 				275, 204
-#define BUTTONS_POSITION 			10, 265
+#define BUTTONS_POSITION 			10, 304
 
 #endif
