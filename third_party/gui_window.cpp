@@ -190,6 +190,13 @@ void wnd_create (const char* title, unsigned width, unsigned height, bool border
 										  CW_USEDEFAULT, CW_USEDEFAULT,
 										  width, height, 
 									      0, 0, the_window.h_instance, 0);
+
+		v2 size = wnd_get_size ();
+		v2 client_size = wnd_get_client_size ();
+
+		v2 difference = make_v2 (size.x - client_size.x, size.y - client_size.y);
+
+		SetWindowPos (the_window.handle, 0, 0, 0, width + (unsigned)difference.x, height + (unsigned)difference.y, 0);
 		
 		HCURSOR default_cursor = LoadCursor (NULL, IDC_ARROW);
 		SetCursor (default_cursor);
