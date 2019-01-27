@@ -93,7 +93,29 @@ static void draw_grid (pixel_input input) {
 }
 
 static void draw_colors (pixel_input input) {
+	v2 start_pos = make_v2 (OUTER_MARGIN + GRID_OUTLINE + GRID_TILE_SIZE * GRID_TILE_COUNT_X + GRID_OUTLINE + INNER_MARGIN,
+							OUTER_MARGIN + SMALL_BUTTON_HEIGHT + INNER_MARGIN);
 
+	rect outline_rect = make_rect (start_pos, 
+								   COLOR_TILE_SIZE * COLOR_TILE_COUNT_X + GRID_OUTLINE * 2,
+								   COLOR_TILE_SIZE * COLOR_TILE_COUNT_Y + GRID_OUTLINE * 2);
+	gl_draw_rect (outline_rect, make_color (OUTLINE_COLOR, 255));
+
+	start_pos.x += GRID_OUTLINE;
+	start_pos.y += GRID_OUTLINE;
+
+	rect tile_rect = make_rect (start_pos, COLOR_TILE_SIZE, COLOR_TILE_SIZE);
+
+	v4 tile_color = colors[0];
+	for (unsigned y = 0; y < COLOR_TILE_COUNT_Y; ++y) {
+		for (unsigned x = 0; x < COLOR_TILE_COUNT_X; ++x) {
+			tile_color = colors[x + y * COLOR_TILE_COUNT_X];
+
+			tile_rect.x = start_pos.x + x * COLOR_TILE_SIZE;
+			tile_rect.y = start_pos.y + y * COLOR_TILE_SIZE;
+			gl_draw_rect (tile_rect, tile_color);
+		}
+	}
 }
 
 static void draw_tools (pixel_input input) {
@@ -111,4 +133,5 @@ void pixel_init () {
 void pixel_update (pixel_input input) {
 	draw_controls (input);
 	draw_grid (input);
+	draw_colors (input);
 }
