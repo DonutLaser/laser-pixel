@@ -12,7 +12,7 @@ GUI_MAIN {
 	wnd_create_console ();
 #endif
 
-	wnd_create ("Pixel Playground", 512, 512, false);
+	wnd_create ("Pixel Playground", 419, 339, false);
 	wnd_set_style (S_FIXEDSIZE);
 
 	pixel_init ();
