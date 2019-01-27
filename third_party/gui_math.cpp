@@ -60,6 +60,10 @@ v4 make_v4 (v2 xy, float z, float w) {
 	return { xy.x, xy.y, z, w };
 }
 
+v4 make_color (unsigned x, unsigned y, unsigned z, unsigned w) {
+	return { (float)x / 255, (float)y / 255, (float)z / 255, (float)w / 255 };
+}
+
 m4 make_identity () {
 	m4 result = { };
 	for (unsigned i = 0; i < 4; ++i)

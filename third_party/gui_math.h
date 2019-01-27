@@ -68,6 +68,8 @@ v4 make_v4 (unsigned x, unsigned y, unsigned z, unsigned w);
 v4 make_v4 (v3 xyz, float w);
 v4 make_v4 (v2 xy, float z, float w);
 
+v4 make_color (unsigned x, unsigned y, unsigned z, unsigned w);
+
 m4 make_identity ();
 m4 transpose (m4 matrix);
 m4 make_ortho (float left, float right, float top, float bottom, float near, float far);
