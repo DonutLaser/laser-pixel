@@ -2,8 +2,9 @@
 #include "../third_party/gui_io.h"
 
 #include "pixel.h"
+#include "constants.h"
 
-#if 0
+#if 1
 #define GUI_DEBUG
 #endif
 
@@ -14,6 +15,7 @@ GUI_MAIN {
 
 	wnd_create ("Pixel Playground", 419, 339, false);
 	wnd_set_style (S_FIXEDSIZE);
+	wnd_set_background_color (make_color (BACKGROUND_COLOR, 255));
 
 	pixel_init ();
 
