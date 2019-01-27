@@ -66,7 +66,7 @@ static unsigned load_shader (const char* vert_src, const char* frag_src) {
 	glUseProgram (result);
 	v2 wnd_size = wnd_get_size ();
 	v2 wnd_client_size = wnd_get_client_size ();
-	m4 ortho = make_ortho (0.0f, (float)wnd_size.x, 0.0f, (float)wnd_size.y, -1.0f, 1.0f);
+	m4 ortho = make_ortho (0.0f, (float)wnd_size.x, -(wnd_size.y - wnd_client_size.y), (float)wnd_client_size.y, -1.0f, 1.0f);
 	int proj_location = glGetUniformLocation (result, "projection");
 	glUniformMatrix4fv (proj_location, 1, GL_FALSE, (float*)ortho.value);
 
