@@ -84,6 +84,10 @@ static v4 colors[] = {
 #define SHADOW_OFFSET_Y				2
 #define SHADOW_COLOR				13, 18, 22
 
-#define CONTROLS_OFFSET				80
+#define CONTROLS_POSITION			80, 10
+#define GRID_POSITION				10, 39
+#define COLORS_POSITION				275, 39
+#define TOOLS_POSITION 				275, 204
+#define BUTTONS_POSITION 			10, 265
 
 #endif

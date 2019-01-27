@@ -30,22 +30,22 @@ static bool draw_button (rect r, pixel_input input) {
 }
 
 static void draw_controls (pixel_input input) {
-	int x_start = CONTROLS_OFFSET;
+	v2 start_pos = make_v2 (CONTROLS_POSITION);
 
-	rect first_frame_rect = make_rect (x_start, OUTER_MARGIN, FRAME_BUTTON_WIDTH, SMALL_BUTTON_HEIGHT);
-	x_start += FRAME_BUTTON_WIDTH + INNER_MARGIN;
+	rect first_frame_rect = make_rect (start_pos, FRAME_BUTTON_WIDTH, SMALL_BUTTON_HEIGHT);
+	start_pos.x += FRAME_BUTTON_WIDTH + INNER_MARGIN;
 
-	rect prev_frame_rect = make_rect (x_start, OUTER_MARGIN, FRAME_BUTTON_WIDTH, SMALL_BUTTON_HEIGHT);
-	x_start += FRAME_BUTTON_WIDTH + INNER_MARGIN;
+	rect prev_frame_rect = make_rect (start_pos, FRAME_BUTTON_WIDTH, SMALL_BUTTON_HEIGHT);
+	start_pos.x += FRAME_BUTTON_WIDTH + INNER_MARGIN;
 
-	rect play_button_rect = make_rect (x_start, OUTER_MARGIN, PLAY_BUTTON_WIDTH, SMALL_BUTTON_HEIGHT);
-	x_start += PLAY_BUTTON_WIDTH + INNER_MARGIN;
+	rect play_button_rect = make_rect (start_pos, PLAY_BUTTON_WIDTH, SMALL_BUTTON_HEIGHT);
+	start_pos.x += PLAY_BUTTON_WIDTH + INNER_MARGIN;
 
-	rect next_frame_rect = make_rect (x_start, OUTER_MARGIN, FRAME_BUTTON_WIDTH, SMALL_BUTTON_HEIGHT);
-	x_start += FRAME_BUTTON_WIDTH + INNER_MARGIN;
+	rect next_frame_rect = make_rect (start_pos, FRAME_BUTTON_WIDTH, SMALL_BUTTON_HEIGHT);
+	start_pos.x += FRAME_BUTTON_WIDTH + INNER_MARGIN;
 
-	rect last_frame_rect = make_rect (x_start, OUTER_MARGIN, FRAME_BUTTON_WIDTH, SMALL_BUTTON_HEIGHT);
-	x_start += FRAME_BUTTON_WIDTH + INNER_MARGIN;
+	rect last_frame_rect = make_rect (start_pos, FRAME_BUTTON_WIDTH, SMALL_BUTTON_HEIGHT);
+	start_pos.x += FRAME_BUTTON_WIDTH + INNER_MARGIN;
 
 	if (draw_button (first_frame_rect, input))
 		io_log ("Go to the first frame");
@@ -60,7 +60,7 @@ static void draw_controls (pixel_input input) {
 }
 
 static void draw_grid (pixel_input input) {
-	v2 start_pos = make_v2 (OUTER_MARGIN, OUTER_MARGIN + SMALL_BUTTON_HEIGHT + INNER_MARGIN);
+	v2 start_pos = make_v2 (GRID_POSITION);
 
 	rect outline_rect = make_rect (start_pos,
 								   GRID_TILE_SIZE * GRID_TILE_COUNT_X + GRID_OUTLINE * 2, 
@@ -93,8 +93,7 @@ static void draw_grid (pixel_input input) {
 }
 
 static void draw_colors (pixel_input input) {
-	v2 start_pos = make_v2 (OUTER_MARGIN + GRID_OUTLINE + GRID_TILE_SIZE * GRID_TILE_COUNT_X + GRID_OUTLINE + INNER_MARGIN,
-							OUTER_MARGIN + SMALL_BUTTON_HEIGHT + INNER_MARGIN);
+	v2 start_pos = make_v2 (COLORS_POSITION);
 
 	rect outline_rect = make_rect (start_pos, 
 								   COLOR_TILE_SIZE * COLOR_TILE_COUNT_X + GRID_OUTLINE * 2,
@@ -119,7 +118,43 @@ static void draw_colors (pixel_input input) {
 }
 
 static void draw_tools (pixel_input input) {
+	v2 start_pos = make_v2 (TOOLS_POSITION);
 
+	rect draw_rect = make_rect (start_pos, LARGE_BUTTON_WIDTH, LARGE_BUTTON_HEIGHT);
+	start_pos.x += LARGE_BUTTON_WIDTH + INNER_MARGIN;
+
+	rect erase_rect = make_rect (start_pos, LARGE_BUTTON_WIDTH, LARGE_BUTTON_HEIGHT);
+	start_pos.x += LARGE_BUTTON_WIDTH + INNER_MARGIN;
+
+	rect select_rect = make_rect (start_pos, LARGE_BUTTON_WIDTH, LARGE_BUTTON_HEIGHT);
+	start_pos.x += LARGE_BUTTON_WIDTH + INNER_MARGIN;
+
+	rect move_rect = make_rect (start_pos, LARGE_BUTTON_WIDTH, LARGE_BUTTON_HEIGHT);
+	start_pos = make_v2 (TOOLS_POSITION);
+	start_pos.y += LARGE_BUTTON_HEIGHT + INNER_MARGIN;
+
+	rect copy_rect = make_rect (start_pos, LARGE_BUTTON_WIDTH, LARGE_BUTTON_HEIGHT);
+	start_pos.x += LARGE_BUTTON_WIDTH + INNER_MARGIN;
+
+	rect paste_rect = make_rect (start_pos, LARGE_BUTTON_WIDTH, LARGE_BUTTON_HEIGHT);
+	start_pos.x += LARGE_BUTTON_WIDTH + INNER_MARGIN;
+
+	rect speed_rect = make_rect (start_pos, SPEED_WIDTH, LARGE_BUTTON_HEIGHT);
+
+	if (draw_button (draw_rect, input))
+		io_log ("Draw Tool");
+	if (draw_button (erase_rect, input))
+		io_log ("Erase Tool");
+	if (draw_button (select_rect, input))
+		io_log ("Select Tool");
+	if (draw_button (move_rect, input))
+		io_log ("Move Tool");
+	if (draw_button (copy_rect, input))
+		io_log ("Copy Tool");
+	if (draw_button (paste_rect, input))
+		io_log ("Paste Tool");
+	if (draw_button (speed_rect, input))
+		io_log ("Speed Tool");
 }
 
 static void draw_buttons (pixel_input input) {
@@ -134,4 +169,5 @@ void pixel_update (pixel_input input) {
 	draw_controls (input);
 	draw_grid (input);
 	draw_colors (input);
+	draw_tools (input);
 }
