@@ -33,6 +33,8 @@ static struct gui_window {
 	HINSTANCE h_instance;
 	HWND handle;
 
+	v4 bg_color;
+
 	bool quit;
 	bool borderless;
 	bool visible;
@@ -197,6 +199,8 @@ void wnd_create (const char* title, unsigned width, unsigned height, bool border
 		v2 difference = make_v2 (size.x - client_size.x, size.y - client_size.y);
 
 		SetWindowPos (the_window.handle, 0, 0, 0, width + (unsigned)difference.x, height + (unsigned)difference.y, 0);
+
+		the_window.bg_color = make_color (255, 255, 255, 255);
 		
 		HCURSOR default_cursor = LoadCursor (NULL, IDC_ARROW);
 		SetCursor (default_cursor);
@@ -307,7 +311,7 @@ bool wnd_update () {
 
 	v2 wnd_size = wnd_get_size ();
 	glViewport (0, 0, (int)wnd_size.x, (int)wnd_size.y);
-	glClearColor (1.0f, 1.0f, 1.0f, 1.0f);
+	glClearColor (the_window.bg_color.r, the_window.bg_color.g, the_window.bg_color.b, the_window.bg_color.a);
 	glClear (GL_COLOR_BUFFER_BIT);
 
 	return true;
@@ -348,6 +352,10 @@ void wnd_set_style (wnd_style style) {
 	}
 
 	SetWindowLongPtr (the_window.handle, GWL_STYLE, wnd_styles[style]);
+}
+
+void wnd_set_background_color (v4 color) {
+	the_window.bg_color = color;
 }
 
 v2 wnd_get_size () {

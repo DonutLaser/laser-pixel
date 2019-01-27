@@ -120,6 +120,7 @@ void wnd_close ();
 void wnd_die_gracefully (const char* message, ...);
 void wnd_swap_buffers ();
 void wnd_set_style (wnd_style style);
+void wnd_set_background_color (v4 color);
 v2 wnd_get_size ();
 v2 wnd_get_client_size (); 
 
