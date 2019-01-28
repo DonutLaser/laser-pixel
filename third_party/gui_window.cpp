@@ -174,7 +174,9 @@ gui_window wnd_create (const char* title, unsigned width, unsigned height, bool 
 		v2 client_size = wnd_get_client_size (result);
 		v2 difference = make_v2 (size.x - client_size.x, size.y - client_size.y);
 
-		SetWindowPos (result.handle, 0, 0, 0, width + (unsigned)difference.x, height + (unsigned)difference.y, 0);
+		v2 actual_size = make_v2 (width + difference.x, height + difference.y);
+
+		SetWindowPos (result.handle, 0, 0, 0, (unsigned)actual_size.x, (unsigned)actual_size.y, 0);
 		
 		HCURSOR default_cursor = LoadCursor (NULL, IDC_ARROW);
 		SetCursor (default_cursor);
