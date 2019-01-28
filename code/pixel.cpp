@@ -145,8 +145,12 @@ static void draw_frame (pixel_app* app, pixel_input input) {
 
 			tile_rect.x = start_pos.x + x * GRID_TILE_SIZE;
 			tile_rect.y = start_pos.y + y * GRID_TILE_SIZE;
-			if (draw_drawable_rect (tile_rect, tile_color, input))
-				app -> grid[y][x] = app -> color_index;
+			if (draw_drawable_rect (tile_rect, tile_color, input)) {
+				if (app -> tool == T_DRAW)
+					app -> grid[y][x] = app -> color_index;
+				else if (app -> tool == T_ERASE)
+					app -> grid[y][x] = -1;
+			}
 		}
 	}
 }
