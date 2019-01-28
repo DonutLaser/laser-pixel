@@ -112,25 +112,56 @@
 #define M_MIDDLE 	0X03
 
 enum wnd_style { S_DEFAULT, S_FIXEDSIZE, S_NOBUTTONS, S_COUNT };
+enum scroll_direction { SD_UP, SD_DOWN, SD_NONE };
 
-void wnd_create (const char* title, unsigned width, unsigned height, bool borderless = false);
+struct gui_mouse {
+	v2 position;
+	unsigned state;
+	scroll_direction scroll_dir;
+	bool btn_was_down;
+};
+
+struct gui_input {
+	unsigned key;
+	unsigned last_key;
+	unsigned modifier;
+	bool key_was_down;
+	bool key_is_down;
+	gui_mouse mouse;
+};
+
+struct gui_window {
+	DWORD style;
+
+	HINSTANCE h_instance;
+	HWND handle;
+
+	v4 bg_color;
+
+	gui_input input;
+
+	bool quit;
+	bool borderless;
+	bool visible;
+};
+
+gui_window wnd_create (const char* title, unsigned width, unsigned height, bool borderless = false);
 void wnd_create_console ();
-bool wnd_update ();
+bool wnd_update (gui_window* window);
 void wnd_close ();
 void wnd_die_gracefully (const char* message, ...);
-void wnd_swap_buffers ();
-void wnd_set_style (wnd_style style);
-void wnd_set_background_color (v4 color);
-v2 wnd_get_size ();
-v2 wnd_get_client_size (); 
+void wnd_swap_buffers (gui_window window);
+void wnd_set_style (gui_window window, wnd_style style);
+v2 wnd_get_size (gui_window window);
+v2 wnd_get_client_size (gui_window window); 
 
-bool input_is_key_down (unsigned code);
-bool input_is_key_pressed (unsigned code);
-bool input_is_key_up (unsigned code);
-bool input_is_mb_down (unsigned btn);
-bool input_is_mb_pressed (unsigned btn);
-bool input_is_mb_up (unsigned btn);
-v2 input_get_mouse_position ();
-int input_get_scroll_dir ();
+bool input_is_key_down (gui_window window, unsigned code);
+bool input_is_key_pressed (gui_window window, unsigned code);
+bool input_is_key_up (gui_window window, unsigned code);
+bool input_is_mb_down (gui_window window, unsigned btn);
+bool input_is_mb_pressed (gui_window window, unsigned btn);
+bool input_is_mb_up (gui_window window, unsigned btn);
+v2 input_get_mouse_position (gui_window window);
+int input_get_scroll_dir (gui_window window);
 
 #endif

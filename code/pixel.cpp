@@ -2,7 +2,9 @@
 
 #include "pixel_gl.h"
 #include "constants.h"
+
 #include "../third_party/gui_io.h"
+#include "../third_party/gui_window.h"
 
 static bool draw_button (rect r, pixel_input input) {
 	bool result = false;
@@ -182,8 +184,8 @@ static void draw_buttons (pixel_input input) {
 		io_log ("Export animation");
 }
 
-void pixel_init () {
-	gl_init ();
+void pixel_init (gui_window window) {
+	gl_init (window);
 }
 
 void pixel_update (pixel_input input) {

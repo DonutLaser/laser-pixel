@@ -13,21 +13,21 @@ GUI_MAIN {
 	wnd_create_console ();
 #endif
 
-	wnd_create ("Pixel Playground", 419, 339, false);
-	wnd_set_style (S_FIXEDSIZE);
-	wnd_set_background_color (make_color (BACKGROUND_COLOR, 255));
+	gui_window window = wnd_create ("Pixel Playground", 419, 339, false);
+	wnd_set_style (window, S_FIXEDSIZE);
+	window.bg_color = make_color (BACKGROUND_COLOR, 255);
 
-	pixel_init ();
+	pixel_init (window);
 
 	pixel_input input;
-	while (wnd_update ()) {
-		input.mouse_pos = input_get_mouse_position ();
-		input.lmb_down = input_is_mb_pressed (M_LEFT);
-		input.lmb_up = input_is_mb_up (M_LEFT);
+	while (wnd_update (&window)) {
+		input.mouse_pos = input_get_mouse_position (window);
+		input.lmb_down = input_is_mb_pressed (window, M_LEFT);
+		input.lmb_up = input_is_mb_up (window, M_LEFT);
 
 		pixel_update (input);
 
-		wnd_swap_buffers ();
+		wnd_swap_buffers (window);
 	}
 
 	wnd_close ();
