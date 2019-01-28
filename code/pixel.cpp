@@ -4,8 +4,13 @@
 
 #include "../third_party/gui_io.h"
 #include "../third_party/gui_window.h"
+#include "../third_party/gui_resources.h"
 
-static bool draw_button (rect r, pixel_input input) {
+enum Icon { ICO_FIRST_FRAME, ICO_PREV_FRAME, ICO_PLAY, ICO_PAUSE, ICO_NEXT_FRAME, ICO_LAST_FRAME,
+			ICO_DRAW, ICO_ERASE, ICO_SELECT, ICO_MOVE, ICO_COPY, ICO_PASTE, ICO_CLEAR,
+			ICO_SAVE, ICO_LOAD, ICO_EXPORT, ICO_FULL_SPEED, ICO_HALF_SPEED };
+
+static bool draw_button (rect r, pixel_input input, gui_image icon) {
 	bool result = false;
 	v4 outline_color = make_color (OUTLINE_COLOR, 255);
 	v4 actual_color = make_color (DEFAULT_BUTTON_COLOR, 255);
@@ -26,6 +31,7 @@ static bool draw_button (rect r, pixel_input input) {
 
 	gl_draw_rect (r, outline_color);
 	gl_draw_rect (actual_rect, actual_color);
+	gl_draw_image (r, make_color (255, 255, 255, 255), icon);
 
 	return result;
 }
@@ -72,7 +78,7 @@ static bool draw_drawable_rect (rect r, v4 color, pixel_input input) {
 	return false;
 }
 
-static void draw_controls (pixel_input input) {
+static void draw_controls (pixel_app* app, pixel_input input) {
 	v2 start_pos = make_v2 (CONTROLS_POSITION);
 
 	rect first_frame_rect = make_rect (start_pos, FRAME_BUTTON_WIDTH, SMALL_BUTTON_HEIGHT);
@@ -90,15 +96,15 @@ static void draw_controls (pixel_input input) {
 	rect last_frame_rect = make_rect (start_pos, FRAME_BUTTON_WIDTH, SMALL_BUTTON_HEIGHT);
 	start_pos.x += FRAME_BUTTON_WIDTH + INNER_MARGIN;
 
-	if (draw_button (first_frame_rect, input))
+	if (draw_button (first_frame_rect, input, app -> icons[(int)ICO_FIRST_FRAME]))
 		io_log ("Go to the first frame");
-	if (draw_button (prev_frame_rect, input))
+	if (draw_button (prev_frame_rect, input, app -> icons[(int)ICO_PREV_FRAME]))
 		io_log ("Go to the previous frame");
-	if (draw_button (play_button_rect, input))
+	if (draw_button (play_button_rect, input, app -> icons[(int)ICO_PLAY]))
 		io_log ("Play");
-	if (draw_button (next_frame_rect, input))
+	if (draw_button (next_frame_rect, input, app -> icons[(int)ICO_NEXT_FRAME]))
 		io_log ("Go to the next frame");
-	if (draw_button (last_frame_rect, input))
+	if (draw_button (last_frame_rect, input, app -> icons[(int)ICO_LAST_FRAME]))
 		io_log ("Go to the last frame");
 }
 
@@ -166,7 +172,7 @@ static void draw_colors (pixel_app* app, pixel_input input) {
 	}
 }
 
-static void draw_tools (pixel_input input) {
+static void draw_tools (pixel_app* app, pixel_input input) {
 	v2 start_pos = make_v2 (TOOLS_POSITION);
 
 	rect draw_rect = make_rect (start_pos, LARGE_BUTTON_WIDTH, LARGE_BUTTON_HEIGHT);
@@ -190,23 +196,23 @@ static void draw_tools (pixel_input input) {
 
 	rect speed_rect = make_rect (start_pos, SPEED_WIDTH, LARGE_BUTTON_HEIGHT);
 
-	if (draw_button (draw_rect, input))
+	if (draw_button (draw_rect, input, app -> icons[(int)ICO_DRAW]))
 		io_log ("Draw Tool");
-	if (draw_button (erase_rect, input))
+	if (draw_button (erase_rect, input, app -> icons[(int)ICO_ERASE]))
 		io_log ("Erase Tool");
-	if (draw_button (select_rect, input))
+	if (draw_button (select_rect, input, app -> icons[(int)ICO_SELECT]))
 		io_log ("Select Tool");
-	if (draw_button (move_rect, input))
+	if (draw_button (move_rect, input, app -> icons[(int)ICO_MOVE]))
 		io_log ("Move Tool");
-	if (draw_button (copy_rect, input))
+	if (draw_button (copy_rect, input, app -> icons[(int)ICO_COPY]))
 		io_log ("Copy Tool");
-	if (draw_button (paste_rect, input))
+	if (draw_button (paste_rect, input, app -> icons[(int)ICO_PASTE]))
 		io_log ("Paste Tool");
-	if (draw_button (speed_rect, input))
+	if (draw_button (speed_rect, input, app -> icons[(int)ICO_FULL_SPEED]))
 		io_log ("Speed Tool");
 }
 
-static void draw_buttons (pixel_input input) {
+static void draw_buttons (pixel_app* app, pixel_input input) {
 	v2 start_pos = make_v2 (BUTTONS_POSITION);
 
 	rect clear_rect = make_rect (start_pos, CLEAR_BUTTON_WIDTH, SMALL_BUTTON_HEIGHT);
@@ -221,13 +227,13 @@ static void draw_buttons (pixel_input input) {
 	rect export_rect = make_rect (start_pos, EXPORT_BUTTON_WIDTH, SMALL_BUTTON_HEIGHT);
 	start_pos.x += EXPORT_BUTTON_WIDTH + INNER_MARGIN;
 
-	if (draw_button (clear_rect, input))
+	if (draw_button (clear_rect, input, app -> icons[(int)ICO_CLEAR]))
 		io_log ("Clear frame");
-	if (draw_button (save_rect, input))
+	if (draw_button (save_rect, input, app -> icons[(int)ICO_SAVE]))
 		io_log ("Save animation");
-	if (draw_button (load_rect, input))
+	if (draw_button (load_rect, input, app -> icons[(int)ICO_LOAD]))
 		io_log ("Load animation");
-	if (draw_button (export_rect, input))
+	if (draw_button (export_rect, input, app -> icons[(int)ICO_EXPORT]))
 		io_log ("Export animation");
 }
 
@@ -240,14 +246,19 @@ void pixel_init (gui_window window, void* memory) {
 			app -> grid[y][x] = -1;
 	}
 
+	for (unsigned i = 0; i < ICON_COUNT; ++i) {
+		resources_load_image (icons[i], &app -> icons[(Icon)i]);
+		gl_load_image (&app -> icons[(Icon)i]);
+	}
+
 	gl_init (window);
 }
 
 void pixel_update (void* memory, pixel_input input) {
 	pixel_app* app = (pixel_app*)memory;
-	draw_controls (input);
+	draw_controls (app, input);
 	draw_frame (app, input);
 	draw_colors (app, input);
-	draw_tools (input);
-	draw_buttons (input);
+	draw_tools (app, input);
+	draw_buttons (app, input);
 }

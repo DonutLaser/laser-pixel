@@ -4,11 +4,13 @@
 #include "../third_party/gui_io.h"
 #include "../third_party/gui_math.h"
 #include "../third_party/gui_window.h"
+#include "../third_party/gui_resources.h"
 
 #include <gl/gl.h>
 
 static unsigned the_vao;
 static unsigned the_shader_color;
+static unsigned the_shader_texture;
 
 static bool is_shader_compiled_successfully (unsigned shader, char* buffer, unsigned buffer_size) {
 	int success;
@@ -132,13 +134,22 @@ void gl_init (gui_window window) {
 
 	the_shader_color = load_shader ("W:\\pixel\\data\\shaders\\color.vert",
 									"W:\\pixel\\data\\shaders\\color.frag", window);
-	// the_shader_texture = load_shader ("W:\\gui\\data\\shaders\\texture.vert",
-	// 								  "W:\\gui\\data\\shaders\\texture.frag");
+	the_shader_texture = load_shader ("W:\\pixel\\data\\shaders\\texture.vert",
+									  "W:\\pixel\\data\\shaders\\texture.frag", window);
 
 	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+}
+
+void gl_load_image (gui_image* image) {
+	glGenTextures (1, &image -> id);
+	glBindTexture (GL_TEXTURE_2D, image -> id);
+	glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA8, (int)image -> size.x, 
+				  (int)image -> size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, image -> data);
+
+	glBindTexture (GL_TEXTURE_2D, 0);
 }
 
 void gl_draw_rect (rect r, v4 color) {
@@ -161,4 +172,31 @@ void gl_draw_rect (rect r, v4 color) {
 
 	glDisable (GL_BLEND);
 	glBindVertexArray (0);
+}
+
+void gl_draw_image (rect r, v4 color, gui_image image) {
+	glUseProgram (the_shader_texture);
+
+	m4 model = make_identity ();
+	model = translate (model, make_v3 (r.x, r.y, 0.0f));
+	model = scale (model, make_v3 (image.size, 1.0f));
+
+	int model_loc = glGetUniformLocation (the_shader_texture, "model");
+	glUniformMatrix4fv (model_loc, 1, GL_TRUE, (float*)model.value);
+	int col_loc = glGetUniformLocation (the_shader_texture, "color");
+	glUniform4f (col_loc, color.r, color.g, color.b, color.a);
+
+	glEnable (GL_BLEND);
+	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	glActiveTexture (GL_TEXTURE0);
+	glBindTexture (GL_TEXTURE_2D, image.id);
+	glGenerateMipmap (GL_TEXTURE_2D); // No clue why this has to be called to show the texture properly
+
+	glBindVertexArray (the_vao);
+	glDrawArrays (GL_TRIANGLES, 0, 6);
+	glBindVertexArray (0);
+
+	glDisable (GL_BLEND);
+	glBindTexture (GL_TEXTURE_2D, 0);
 }

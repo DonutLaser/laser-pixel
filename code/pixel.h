@@ -4,6 +4,7 @@
 #include "constants.h"
 
 #include "../third_party/gui_math.h"
+#include "../third_party/gui_resources.h"
 
 // Forward declarations
 struct gui_window;
@@ -15,6 +16,7 @@ struct pixel_input {
 };
 
 struct pixel_app {
+	gui_image icons[ICON_COUNT];
 	int grid[GRID_TILE_COUNT_X][GRID_TILE_COUNT_Y];
 	unsigned color_index;
 };

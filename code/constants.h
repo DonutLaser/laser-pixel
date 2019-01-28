@@ -90,4 +90,26 @@ static v4 colors[] = {
 #define TOOLS_POSITION 				275, 204
 #define BUTTONS_POSITION 			10, 304
 
+#define ICON_COUNT 					18
+static const char* icons[ICON_COUNT] = {
+	"W://pixel//data//images//first_frame.png",
+	"W://pixel//data//images//prev_frame.png",
+	"W://pixel//data//images//play.png",
+	"W://pixel//data//images//pause.png",
+	"W://pixel//data//images//next_frame.png",
+	"W://pixel//data//images//last_frame.png",
+	"W://pixel//data//images//draw.png",
+	"W://pixel//data//images//erase.png",
+	"W://pixel//data//images//select.png",
+	"W://pixel//data//images//move.png",
+	"W://pixel//data//images//copy.png",
+	"W://pixel//data//images//paste.png",
+	"W://pixel//data//images//clear.png",
+	"W://pixel//data//images//save.png",
+	"W://pixel//data//images//load.png",
+	"W://pixel//data//images//export.png",
+	"W://pixel//data//images//full_speed.png",
+	"W://pixel//data//images//half_speed.png"
+};
+
 #endif
