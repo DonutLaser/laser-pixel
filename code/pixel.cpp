@@ -1,7 +1,6 @@
 #include "pixel.h"
 
 #include "pixel_gl.h"
-#include "constants.h"
 
 #include "../third_party/gui_io.h"
 #include "../third_party/gui_window.h"
@@ -85,7 +84,7 @@ static void draw_controls (pixel_input input) {
 		io_log ("Go to the last frame");
 }
 
-static void draw_grid (pixel_input input) {
+static void draw_grid (pixel_app* app, pixel_input input) {
 	v2 start_pos = make_v2 (GRID_POSITION);
 
 	rect outline_rect = make_rect (start_pos,
@@ -108,12 +107,16 @@ static void draw_grid (pixel_input input) {
 		offset = y % 2;
 
 		for (unsigned x = 0; x < GRID_TILE_COUNT_X; ++x) {
-			tile_color = tile_colors[(x + offset) % 2];
+			int index = app -> grid[y][x];
+			if (index < 0)
+				tile_color = tile_colors[(x + offset) % 2];
+			else
+				tile_color = colors[index];
 
 			tile_rect.x = start_pos.x + x * GRID_TILE_SIZE;
 			tile_rect.y = start_pos.y + y * GRID_TILE_SIZE;
-			gl_draw_rect (tile_rect, tile_color);
-
+			if (draw_selectable_rect (tile_rect, tile_color, input, false))
+				app -> grid[y][x] = app -> color_index;
 		}
 	}
 }
@@ -214,13 +217,18 @@ void pixel_init (gui_window window, void* memory) {
 	pixel_app* app = (pixel_app*)memory;
 	app -> color_index = 0;
 
+	for (unsigned y = 0; y < GRID_TILE_COUNT_Y; ++y) {
+		for (unsigned x = 0; x < GRID_TILE_COUNT_X; ++x)
+			app -> grid[y][x] = -1;
+	}
+
 	gl_init (window);
 }
 
 void pixel_update (void* memory, pixel_input input) {
 	pixel_app* app = (pixel_app*)memory;
 	draw_controls (input);
-	draw_grid (input);
+	draw_grid (app, input);
 	draw_colors (app, input);
 	draw_tools (input);
 	draw_buttons (input);

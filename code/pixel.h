@@ -1,6 +1,8 @@
 #if !defined (PIXEL_H)
 #define PIXEL_H
 
+#include "constants.h"
+
 #include "../third_party/gui_math.h"
 
 // Forward declarations
@@ -13,6 +15,7 @@ struct pixel_input {
 };
 
 struct pixel_app {
+	int grid[GRID_TILE_COUNT_X][GRID_TILE_COUNT_Y];
 	unsigned color_index;
 };
 
