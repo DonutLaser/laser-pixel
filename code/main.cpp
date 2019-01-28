@@ -17,7 +17,9 @@ GUI_MAIN {
 	wnd_set_style (window, S_FIXEDSIZE);
 	window.bg_color = make_color (BACKGROUND_COLOR, 255);
 
-	pixel_init (window);
+	void* memory = malloc (sizeof (char) * 1024 * 1024 * 10); // 10 MB
+
+	pixel_init (window, memory);
 
 	pixel_input input;
 	while (wnd_update (&window)) {
@@ -25,7 +27,7 @@ GUI_MAIN {
 		input.lmb_down = input_is_mb_pressed (window, M_LEFT);
 		input.lmb_up = input_is_mb_up (window, M_LEFT);
 
-		pixel_update (input);
+		pixel_update (memory, input);
 
 		wnd_swap_buffers (window);
 	}

@@ -12,7 +12,11 @@ struct pixel_input {
 	bool lmb_up;
 };
 
-void pixel_init (gui_window window);
-void pixel_update (pixel_input input);
+struct pixel_app {
+	unsigned color_index;
+};
+
+void pixel_init (gui_window window, void* memory);
+void pixel_update (void* memory, pixel_input input);
 
 #endif

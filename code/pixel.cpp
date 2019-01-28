@@ -31,6 +31,30 @@ static bool draw_button (rect r, pixel_input input) {
 	return result;
 }
 
+static bool draw_selectable_rect (rect r, v4 color, pixel_input input, bool is_selected) {
+	rect selected_rect = r;
+	selected_rect.x += SELECTION_INDICATOR_OUTLINE;
+	selected_rect.y += SELECTION_INDICATOR_OUTLINE;
+	selected_rect.width -= SELECTION_INDICATOR_OUTLINE * 2;
+	selected_rect.height -= SELECTION_INDICATOR_OUTLINE * 2;
+
+	if (is_selected) {
+		gl_draw_rect (r, make_color (DEFAULT_BUTTON_ICON_COLOR, 255));
+		gl_draw_rect (selected_rect, color);
+
+		return false;
+	}
+	else if (is_point_in_rect (r, input.mouse_pos)) {
+		gl_draw_rect (r, make_color (DEFAULT_BUTTON_ICON_COLOR, 255));
+		gl_draw_rect (selected_rect, color);
+
+		return input.lmb_up;
+	}
+
+	gl_draw_rect (r, color);
+	return false;
+}
+
 static void draw_controls (pixel_input input) {
 	v2 start_pos = make_v2 (CONTROLS_POSITION);
 
@@ -94,7 +118,7 @@ static void draw_grid (pixel_input input) {
 	}
 }
 
-static void draw_colors (pixel_input input) {
+static void draw_colors (pixel_app* app, pixel_input input) {
 	v2 start_pos = make_v2 (COLORS_POSITION);
 
 	rect outline_rect = make_rect (start_pos, 
@@ -114,7 +138,9 @@ static void draw_colors (pixel_input input) {
 
 			tile_rect.x = start_pos.x + x * COLOR_TILE_SIZE;
 			tile_rect.y = start_pos.y + y * COLOR_TILE_SIZE;
-			gl_draw_rect (tile_rect, tile_color);
+
+			if (draw_selectable_rect (tile_rect, tile_color, input, app -> color_index == x + y * COLOR_TILE_COUNT_X))
+				app -> color_index = x + y * COLOR_TILE_COUNT_X;
 		}
 	}
 }
@@ -184,14 +210,18 @@ static void draw_buttons (pixel_input input) {
 		io_log ("Export animation");
 }
 
-void pixel_init (gui_window window) {
+void pixel_init (gui_window window, void* memory) {
+	pixel_app* app = (pixel_app*)memory;
+	app -> color_index = 0;
+
 	gl_init (window);
 }
 
-void pixel_update (pixel_input input) {
+void pixel_update (void* memory, pixel_input input) {
+	pixel_app* app = (pixel_app*)memory;
 	draw_controls (input);
 	draw_grid (input);
-	draw_colors (input);
+	draw_colors (app, input);
 	draw_tools (input);
 	draw_buttons (input);
 }
