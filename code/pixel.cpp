@@ -197,17 +197,17 @@ static void draw_tools (pixel_app* app, pixel_input input) {
 	rect speed_rect = make_rect (start_pos, SPEED_WIDTH, LARGE_BUTTON_HEIGHT);
 
 	if (draw_button (draw_rect, input, app -> icons[(int)ICO_DRAW]))
-		io_log ("Draw Tool");
+		app -> tool = T_DRAW;
 	if (draw_button (erase_rect, input, app -> icons[(int)ICO_ERASE]))
-		io_log ("Erase Tool");
+		app -> tool = T_ERASE;
 	if (draw_button (select_rect, input, app -> icons[(int)ICO_SELECT]))
-		io_log ("Select Tool");
+		app -> tool = T_SELECT;
 	if (draw_button (move_rect, input, app -> icons[(int)ICO_MOVE]))
-		io_log ("Move Tool");
+		app -> tool = T_MOVE;
 	if (draw_button (copy_rect, input, app -> icons[(int)ICO_COPY]))
-		io_log ("Copy Tool");
+		app -> tool = T_COPY;
 	if (draw_button (paste_rect, input, app -> icons[(int)ICO_PASTE]))
-		io_log ("Paste Tool");
+		app -> tool = T_PASTE;
 	if (draw_button (speed_rect, input, app -> icons[(int)ICO_FULL_SPEED]))
 		io_log ("Speed Tool");
 }
