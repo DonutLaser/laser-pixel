@@ -335,6 +335,21 @@ void wnd_set_style (gui_window window, wnd_style style) {
 	SetWindowLongPtr (window.handle, GWL_STYLE, wnd_styles[style]);
 }
 
+void wnd_set_title (gui_window window, const char* title, ...) {
+	char message[128];
+	unsigned written = 0;
+
+	va_list arguments;
+	va_start (arguments, title);
+
+	written = _vsnprintf_s (message, sizeof (message) - 1, title, arguments);
+
+	if (written > 0)
+		SetWindowText (window.handle, message);
+
+	va_end (arguments);
+}
+
 v2 wnd_get_size (gui_window window) {
 	RECT rect;
 	GetWindowRect (window.handle, &rect);

@@ -152,6 +152,7 @@ void wnd_close ();
 void wnd_die_gracefully (const char* message, ...);
 void wnd_swap_buffers (gui_window window);
 void wnd_set_style (gui_window window, wnd_style style);
+void wnd_set_title (gui_window window, const char* title, ...);
 v2 wnd_get_size (gui_window window);
 v2 wnd_get_client_size (gui_window window); 
 
