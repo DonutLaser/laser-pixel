@@ -32,6 +32,8 @@ GUI_MAIN {
 		wnd_swap_buffers (window);
 	}
 
+	free (memory);
+
 	wnd_close ();
 	return 0;
 }
