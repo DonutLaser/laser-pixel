@@ -237,8 +237,12 @@ static void draw_buttons (pixel_app* app, pixel_input input) {
 	rect export_rect = make_rect (start_pos, EXPORT_BUTTON_WIDTH, SMALL_BUTTON_HEIGHT);
 	start_pos.x += EXPORT_BUTTON_WIDTH + INNER_MARGIN;
 
-	if (draw_button (clear_rect, input, app -> icons[(int)ICO_CLEAR]))
-		io_log ("Clear frame");
+	if (draw_button (clear_rect, input, app -> icons[(int)ICO_CLEAR])) {
+		for (unsigned y = 0; y < GRID_TILE_COUNT_Y; ++y) {
+			for (unsigned x = 0; x < GRID_TILE_COUNT_X; ++x)
+				app -> grid[y][x] = -1;
+		}
+	}
 	if (draw_button (save_rect, input, app -> icons[(int)ICO_SAVE]))
 		io_log ("Save animation");
 	if (draw_button (load_rect, input, app -> icons[(int)ICO_LOAD]))
@@ -260,6 +264,8 @@ void pixel_init (gui_window window, void* memory) {
 		resources_load_image (icons[i], &app -> icons[(Icon)i]);
 		gl_load_image (&app -> icons[(Icon)i]);
 	}
+
+	set_tool (app, T_DRAW, "Draw Tool", window);
 
 	gl_init (window);
 }
