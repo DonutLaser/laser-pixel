@@ -27,7 +27,7 @@ GUI_MAIN {
 		input.lmb_down = input_is_mb_pressed (window, M_LEFT);
 		input.lmb_up = input_is_mb_up (window, M_LEFT);
 
-		pixel_update (memory, input);
+		pixel_update (memory, input, window);
 
 		wnd_swap_buffers (window);
 	}

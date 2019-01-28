@@ -10,6 +10,12 @@ enum Icon { ICO_FIRST_FRAME, ICO_PREV_FRAME, ICO_PLAY, ICO_PAUSE, ICO_NEXT_FRAME
 			ICO_DRAW, ICO_ERASE, ICO_SELECT, ICO_MOVE, ICO_COPY, ICO_PASTE, ICO_CLEAR,
 			ICO_SAVE, ICO_LOAD, ICO_EXPORT, ICO_FULL_SPEED, ICO_HALF_SPEED };
 
+static void set_tool (pixel_app* app, Tool tool, const char* text, gui_window window) {
+	app -> tool = tool;
+
+	wnd_set_title (window, "Pixel Playground | %s |", text);
+}
+
 static bool draw_button (rect r, pixel_input input, gui_image icon) {
 	bool result = false;
 	v4 outline_color = make_color (OUTLINE_COLOR, 255);
@@ -172,7 +178,7 @@ static void draw_colors (pixel_app* app, pixel_input input) {
 	}
 }
 
-static void draw_tools (pixel_app* app, pixel_input input) {
+static void draw_tools (pixel_app* app, pixel_input input, gui_window window) {
 	v2 start_pos = make_v2 (TOOLS_POSITION);
 
 	rect draw_rect = make_rect (start_pos, LARGE_BUTTON_WIDTH, LARGE_BUTTON_HEIGHT);
@@ -197,17 +203,17 @@ static void draw_tools (pixel_app* app, pixel_input input) {
 	rect speed_rect = make_rect (start_pos, SPEED_WIDTH, LARGE_BUTTON_HEIGHT);
 
 	if (draw_button (draw_rect, input, app -> icons[(int)ICO_DRAW]))
-		app -> tool = T_DRAW;
+		set_tool (app, T_DRAW, "Draw Tool", window);
 	if (draw_button (erase_rect, input, app -> icons[(int)ICO_ERASE]))
-		app -> tool = T_ERASE;
+		set_tool (app, T_ERASE, "Erase Tool", window);
 	if (draw_button (select_rect, input, app -> icons[(int)ICO_SELECT]))
-		app -> tool = T_SELECT;
+		set_tool (app, T_SELECT, "Select Tool", window);
 	if (draw_button (move_rect, input, app -> icons[(int)ICO_MOVE]))
-		app -> tool = T_MOVE;
+		set_tool (app, T_MOVE, "Move Tool", window);
 	if (draw_button (copy_rect, input, app -> icons[(int)ICO_COPY]))
-		app -> tool = T_COPY;
+		io_log ("Copy");
 	if (draw_button (paste_rect, input, app -> icons[(int)ICO_PASTE]))
-		app -> tool = T_PASTE;
+		io_log ("Paste");
 	if (draw_button (speed_rect, input, app -> icons[(int)ICO_FULL_SPEED]))
 		io_log ("Speed Tool");
 }
@@ -254,11 +260,11 @@ void pixel_init (gui_window window, void* memory) {
 	gl_init (window);
 }
 
-void pixel_update (void* memory, pixel_input input) {
+void pixel_update (void* memory, pixel_input input, gui_window window) {
 	pixel_app* app = (pixel_app*)memory;
 	draw_controls (app, input);
 	draw_frame (app, input);
 	draw_colors (app, input);
-	draw_tools (app, input);
+	draw_tools (app, input, window);
 	draw_buttons (app, input);
 }

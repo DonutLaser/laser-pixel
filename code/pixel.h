@@ -26,6 +26,6 @@ struct pixel_app {
 };
 
 void pixel_init (gui_window window, void* memory);
-void pixel_update (void* memory, pixel_input input);
+void pixel_update (void* memory, pixel_input input, gui_window window);
 
 #endif
