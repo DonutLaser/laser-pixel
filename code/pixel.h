@@ -20,6 +20,7 @@ struct pixel_input {
 struct pixel_app {
 	gui_image icons[ICON_COUNT];
 	int grid[GRID_TILE_COUNT_X][GRID_TILE_COUNT_Y];
+	int selection_grid[GRID_TILE_COUNT_X][GRID_TILE_COUNT_Y];
 	unsigned color_index;
 	Tool tool;
 };
