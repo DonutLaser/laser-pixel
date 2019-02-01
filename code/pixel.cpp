@@ -16,6 +16,17 @@ static void set_tool (pixel_app* app, Tool tool, const char* text, gui_window wi
 	wnd_set_title (window, "Pixel Playground | %s |", text);
 }
 
+static void clear_selection (pixel_app* app) {
+	for (unsigned y = 0; y < GRID_TILE_COUNT_Y; ++y) {
+		for (unsigned x = 0; x < GRID_TILE_COUNT_X; ++x) {
+			if (app -> grid[y][x] < 0)
+				app -> grid[y][x] = -1;
+			else if (app -> grid[y][x] >= SELECTED_TILE_INDEX_MOD)
+				app -> grid[y][x] -= SELECTED_TILE_INDEX_MOD;
+		}
+	}
+}
+
 static bool draw_button (rect r, pixel_input input, gui_image icon) {
 	bool result = false;
 	v4 outline_color = make_color (OUTLINE_COLOR, 255);
@@ -66,14 +77,20 @@ static bool draw_selectable_rect (rect r, v4 color, pixel_input input, bool is_s
 	return false;
 }
 
-static bool draw_drawable_rect (rect r, v4 color, pixel_input input) {
+static bool draw_drawable_rect (rect r, v4 color, pixel_input input, bool is_selected) {
 	rect selected_rect = r;
 	selected_rect.x += SELECTION_INDICATOR_OUTLINE;
 	selected_rect.y += SELECTION_INDICATOR_OUTLINE;
 	selected_rect.width -= SELECTION_INDICATOR_OUTLINE * 2;
 	selected_rect.height -= SELECTION_INDICATOR_OUTLINE * 2;
 
-	if (is_point_in_rect (r, input.mouse_pos)) {
+	if (is_selected) {
+		gl_draw_rect (r, make_color (DEFAULT_BUTTON_ICON_COLOR, 255));
+		gl_draw_rect (selected_rect, color);	
+
+		return false;
+	}
+	else if (is_point_in_rect (r, input.mouse_pos)) {
 		gl_draw_rect (r, make_color (DEFAULT_BUTTON_ICON_COLOR, 255));
 		gl_draw_rect (selected_rect, color);
 
@@ -138,18 +155,26 @@ static void draw_frame (pixel_app* app, pixel_input input) {
 
 		for (unsigned x = 0; x < GRID_TILE_COUNT_X; ++x) {
 			int index = app -> grid[y][x];
+			bool is_selected = index >= SELECTED_TILE_INDEX_MOD;
 			if (index < 0)
 				tile_color = tile_colors[(x + offset) % 2];
 			else
-				tile_color = colors[index];
+				tile_color = colors[is_selected ? index - SELECTED_TILE_INDEX_MOD : index];
 
 			tile_rect.x = start_pos.x + x * GRID_TILE_SIZE;
 			tile_rect.y = start_pos.y + y * GRID_TILE_SIZE;
-			if (draw_drawable_rect (tile_rect, tile_color, input)) {
-				if (app -> tool == T_DRAW)
+
+			if (draw_drawable_rect (tile_rect, tile_color, input, is_selected)) {
+				if (app -> tool == T_DRAW) {
 					app -> grid[y][x] = app -> color_index;
-				else if (app -> tool == T_ERASE)
+					clear_selection (app);
+				}
+				else if (app -> tool == T_ERASE) {
 					app -> grid[y][x] = -1;
+					clear_selection (app);
+				}
+				else if (app -> tool == T_SELECT)
+					app -> grid[y][x] = app -> grid[y][x] + (app -> grid[y][x] < 0 ? 0 : SELECTED_TILE_INDEX_MOD);
 			}
 		}
 	}
