@@ -32,6 +32,7 @@ struct pixel_app {
 	unsigned color_index;
 	Tool tool;
 	bool tiles_selected;
+	bool paste_executed;
 };
 
 void pixel_init (gui_window window, void* memory);
