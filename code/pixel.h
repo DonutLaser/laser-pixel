@@ -27,6 +27,7 @@ struct pixel_app {
 	gui_image icons[ICON_COUNT];
 	int grid[GRID_TILE_COUNT_X][GRID_TILE_COUNT_Y];
 	int selection_grid[GRID_TILE_COUNT_X][GRID_TILE_COUNT_Y];
+	int clipboard_grid[GRID_TILE_COUNT_X][GRID_TILE_COUNT_Y];
 	mouse_drag move; 
 	unsigned color_index;
 	Tool tool;

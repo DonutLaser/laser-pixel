@@ -22,6 +22,15 @@ static void clear_selection (pixel_app* app) {
 	app -> tiles_selected = false;
 }
 
+static void copy_to_clipboard (pixel_app* app) {
+	for (unsigned y = 0; y < GRID_TILE_COUNT_Y; ++y) {
+		for (unsigned x = 0; x < GRID_TILE_COUNT_X; ++x) {
+			if (app -> selection_grid[y][x] >= 0)
+				app -> clipboard_grid[y][x] = app -> selection_grid[y][x];
+		}
+	}
+}
+
 static void set_tool (pixel_app* app, Tool tool, const char* text, gui_window window) {
 	app -> tool = tool;
 
@@ -313,7 +322,7 @@ static void draw_tools (pixel_app* app, pixel_input input, gui_window window) {
 	if (draw_button (rects[3], input, app -> icons[(int)ICO_MOVE]))
 		set_tool (app, T_MOVE, "Move Tool", window);
 	if (draw_button (rects[4], input, app -> icons[(int)ICO_COPY]))
-		io_log ("Copy");
+		copy_to_clipboard (app);
 	if (draw_button (rects[5], input, app -> icons[(int)ICO_PASTE]))
 		io_log ("Paste");
 	if (draw_button (rects[6], input, app -> icons[(int)ICO_FULL_SPEED]))
