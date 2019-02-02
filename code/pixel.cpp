@@ -42,15 +42,31 @@ static void paste (pixel_app* app) {
 	}
 
 	app -> paste_executed = true;
+	app -> tiles_selected = true;
 }
 
 static void set_tool (pixel_app* app, Tool tool, const char* text, gui_window window) {
 	app -> tool = tool;
 
-	if (app -> tool != T_MOVE)
+	if (app -> tool != T_MOVE) {
+		if (app -> paste_executed) {
+			for (unsigned y = 0; y < GRID_TILE_COUNT_Y; ++y) {
+				for (unsigned x = 0; x < GRID_TILE_COUNT_X; ++x) {
+					if (app -> selection_grid[y][x] >= 0) {
+						if (BETWEEN (y + (int)app -> move.offset.y, 0, GRID_TILE_COUNT_Y - 1) &&
+							BETWEEN (x + (int)app -> move.offset.x, 0, GRID_TILE_COUNT_X - 1)) {
+							app -> grid[y + (int)app -> move.offset.y][x + (int)app -> move.offset.x] = 
+								app -> selection_grid[y][x];
+						}
+					}
+				}
+			}
+		}
+		
 		clear_selection (app);
+		app -> paste_executed = false;
+	}
 
-	app -> paste_executed = false;
 
 	wnd_set_title (window, "Pixel Playground | %s |", text);
 }
@@ -173,14 +189,10 @@ static void draw_frame (pixel_app* app, pixel_input input) {
 			bool is_selected = app -> selection_grid[y][x] >= 0 && app -> tool != T_MOVE;
 
 			if (draw_selectable_rect (tile_rect, tile_color, input.mouse_pos, input.lmb_down, is_selected)) {
-				if (app -> tool == T_DRAW) {
+				if (app -> tool == T_DRAW)
 					app -> grid[y][x] = app -> color_index;
-					clear_selection (app);
-				}
-				else if (app -> tool == T_ERASE) {
+				else if (app -> tool == T_ERASE) 
 					app -> grid[y][x] = -1;
-					clear_selection (app);
-				}
 				else if (app -> tool == T_SELECT) {
 					app -> selection_grid[y][x] = app -> grid[y][x] >= 0 ? app -> grid[y][x] : -1;
 					app -> tiles_selected = true;
@@ -190,7 +202,7 @@ static void draw_frame (pixel_app* app, pixel_input input) {
 	}
 }
 
-static void draw_selected_pixels (pixel_app* app, pixel_input input) {
+static void handle_move (pixel_app* app, pixel_input input) {
 	if (input.lmb_down && !app -> move.in_progress) {
 		v2 start_pos = make_v2 (GRID_POSITION);
 		rect outline_rect = make_rect (start_pos,
@@ -217,18 +229,20 @@ static void draw_selected_pixels (pixel_app* app, pixel_input input) {
 	else if (input.lmb_up) {
 		app -> move.in_progress = false;
 
-		for (unsigned y = 0; y < GRID_TILE_COUNT_Y; ++y) {
-			for (unsigned x = 0; x < GRID_TILE_COUNT_X; ++x) {
-				if (app -> selection_grid[y][x] >= 0) {
-					if (BETWEEN (y + (int)app -> move.offset.y, 0, GRID_TILE_COUNT_Y - 1) &&
-						BETWEEN (x + (int)app -> move.offset.x, 0, GRID_TILE_COUNT_X - 1)) {
-						app -> grid[y + (int)app -> move.offset.y][x + (int)app -> move.offset.x] = 
-							app -> selection_grid[y][x];
+		if (!app -> paste_executed) {
+			for (unsigned y = 0; y < GRID_TILE_COUNT_Y; ++y) {
+				for (unsigned x = 0; x < GRID_TILE_COUNT_X; ++x) {
+					if (app -> selection_grid[y][x] >= 0) {
+						if (BETWEEN (y + (int)app -> move.offset.y, 0, GRID_TILE_COUNT_Y - 1) &&
+							BETWEEN (x + (int)app -> move.offset.x, 0, GRID_TILE_COUNT_X - 1)) {
+							app -> grid[y + (int)app -> move.offset.y][x + (int)app -> move.offset.x] = 
+								app -> selection_grid[y][x];
+						}
 					}
 				}
 			}
 		}
-
+		
 		// Update the selection grid
 		int updated_selection_grid[GRID_TILE_COUNT_Y][GRID_TILE_COUNT_X];
 		for (unsigned y = 0; y < GRID_TILE_COUNT_Y; ++y) {
@@ -254,7 +268,12 @@ static void draw_selected_pixels (pixel_app* app, pixel_input input) {
 
 		app -> move.offset = make_v2 (0, 0);
 	}
+}
 
+static void draw_selected_pixels (pixel_app* app, pixel_input input) {
+	if (app -> tool == T_MOVE)
+		handle_move (app, input);
+	
 	v2 start_pos = make_v2 (GRID_POSITION);
 	start_pos.x += GRID_OUTLINE + app -> move.offset.x * GRID_TILE_SIZE;
 	start_pos.y += GRID_OUTLINE + app -> move.offset.y * GRID_TILE_SIZE;
@@ -412,8 +431,7 @@ void pixel_update (void* memory, pixel_input input, gui_window window) {
 	gl_begin_clip_rect (wnd_get_client_size (window), clip_rect);
 
 	draw_frame (app, input);
-	if (app -> tool == T_MOVE)
-		draw_selected_pixels (app, input);
+	draw_selected_pixels (app, input);
 
 	gl_end_clip_rect ();
 
