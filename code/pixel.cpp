@@ -119,31 +119,30 @@ static void draw_selected_rect (rect r, v4 color) {
 static void draw_controls (pixel_app* app, pixel_input input) {
 	v2 start_pos = make_v2 (CONTROLS_POSITION);
 
-	rect first_frame_rect = make_rect (start_pos, FRAME_BUTTON_WIDTH, SMALL_BUTTON_HEIGHT);
-	start_pos.x += FRAME_BUTTON_WIDTH + INNER_MARGIN;
+	unsigned widths[] = {
+		FRAME_BUTTON_WIDTH,
+		FRAME_BUTTON_WIDTH,
+		PLAY_BUTTON_WIDTH,
+		FRAME_BUTTON_WIDTH,
+		FRAME_BUTTON_WIDTH
+	};
 
-	rect prev_frame_rect = make_rect (start_pos, FRAME_BUTTON_WIDTH, SMALL_BUTTON_HEIGHT);
-	start_pos.x += FRAME_BUTTON_WIDTH + INNER_MARGIN;
+	unsigned icons[] = {
+		(int)ICO_FIRST_FRAME,
+		(int)ICO_PREV_FRAME,
+		(int)ICO_PLAY,
+		(int)ICO_NEXT_FRAME,
+		(int)ICO_LAST_FRAME
+	};
 
-	rect play_button_rect = make_rect (start_pos, PLAY_BUTTON_WIDTH, SMALL_BUTTON_HEIGHT);
-	start_pos.x += PLAY_BUTTON_WIDTH + INNER_MARGIN;
+	rect r = { };
+	for (unsigned i = 0; i < 5; ++i) {
+		r = make_rect (start_pos, (float)widths[i], SMALL_BUTTON_HEIGHT);
+		start_pos.x += widths[i] + INNER_MARGIN;
 
-	rect next_frame_rect = make_rect (start_pos, FRAME_BUTTON_WIDTH, SMALL_BUTTON_HEIGHT);
-	start_pos.x += FRAME_BUTTON_WIDTH + INNER_MARGIN;
-
-	rect last_frame_rect = make_rect (start_pos, FRAME_BUTTON_WIDTH, SMALL_BUTTON_HEIGHT);
-	start_pos.x += FRAME_BUTTON_WIDTH + INNER_MARGIN;
-
-	if (draw_button (first_frame_rect, input, app -> icons[(int)ICO_FIRST_FRAME]))
-		io_log ("Go to the first frame");
-	if (draw_button (prev_frame_rect, input, app -> icons[(int)ICO_PREV_FRAME]))
-		io_log ("Go to the previous frame");
-	if (draw_button (play_button_rect, input, app -> icons[(int)ICO_PLAY]))
-		io_log ("Play");
-	if (draw_button (next_frame_rect, input, app -> icons[(int)ICO_NEXT_FRAME]))
-		io_log ("Go to the next frame");
-	if (draw_button (last_frame_rect, input, app -> icons[(int)ICO_LAST_FRAME]))
-		io_log ("Go to the last frame");
+		if (draw_button (r, input, app -> icons[icons[i]]))
+			io_log ("Do Frame action");
+	}
 }
 
 static void draw_frame (pixel_app* app, pixel_input input) {
