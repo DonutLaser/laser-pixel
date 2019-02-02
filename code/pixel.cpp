@@ -323,40 +323,32 @@ static void draw_colors (pixel_app* app, pixel_input input) {
 static void draw_tools (pixel_app* app, pixel_input input, gui_window window) {
 	v2 start_pos = make_v2 (TOOLS_POSITION);
 
-	rect draw_rect = make_rect (start_pos, LARGE_BUTTON_WIDTH, LARGE_BUTTON_HEIGHT);
-	start_pos.x += LARGE_BUTTON_WIDTH + INNER_MARGIN;
+	unsigned widths[] = { LARGE_BUTTON_WIDTH, SPEED_WIDTH };
+	rect rects[7];
 
-	rect erase_rect = make_rect (start_pos, LARGE_BUTTON_WIDTH, LARGE_BUTTON_HEIGHT);
-	start_pos.x += LARGE_BUTTON_WIDTH + INNER_MARGIN;
+	for (unsigned i = 0; i < 7; ++i) {
+		rects[i] = make_rect (start_pos, i < 6 ? (float)widths[0]: (float)widths[1], LARGE_BUTTON_HEIGHT);
+		start_pos.x += widths[0] + INNER_MARGIN;
 
-	rect select_rect = make_rect (start_pos, LARGE_BUTTON_WIDTH, LARGE_BUTTON_HEIGHT);
-	start_pos.x += LARGE_BUTTON_WIDTH + INNER_MARGIN;
+		if (i == 3) {
+			start_pos = make_v2 (TOOLS_POSITION);
+			start_pos.y += LARGE_BUTTON_HEIGHT + INNER_MARGIN;
+		}
+	}
 
-	rect move_rect = make_rect (start_pos, LARGE_BUTTON_WIDTH, LARGE_BUTTON_HEIGHT);
-	start_pos = make_v2 (TOOLS_POSITION);
-	start_pos.y += LARGE_BUTTON_HEIGHT + INNER_MARGIN;
-
-	rect copy_rect = make_rect (start_pos, LARGE_BUTTON_WIDTH, LARGE_BUTTON_HEIGHT);
-	start_pos.x += LARGE_BUTTON_WIDTH + INNER_MARGIN;
-
-	rect paste_rect = make_rect (start_pos, LARGE_BUTTON_WIDTH, LARGE_BUTTON_HEIGHT);
-	start_pos.x += LARGE_BUTTON_WIDTH + INNER_MARGIN;
-
-	rect speed_rect = make_rect (start_pos, SPEED_WIDTH, LARGE_BUTTON_HEIGHT);
-
-	if (draw_button (draw_rect, input, app -> icons[(int)ICO_DRAW]))
+	if (draw_button (rects[0], input, app -> icons[(int)ICO_DRAW]))
 		set_tool (app, T_DRAW, "Draw Tool", window);
-	if (draw_button (erase_rect, input, app -> icons[(int)ICO_ERASE]))
+	if (draw_button (rects[1], input, app -> icons[(int)ICO_ERASE]))
 		set_tool (app, T_ERASE, "Erase Tool", window);
-	if (draw_button (select_rect, input, app -> icons[(int)ICO_SELECT]))
+	if (draw_button (rects[2], input, app -> icons[(int)ICO_SELECT]))
 		set_tool (app, T_SELECT, "Select Tool", window);
-	if (draw_button (move_rect, input, app -> icons[(int)ICO_MOVE]))
+	if (draw_button (rects[3], input, app -> icons[(int)ICO_MOVE]))
 		set_tool (app, T_MOVE, "Move Tool", window);
-	if (draw_button (copy_rect, input, app -> icons[(int)ICO_COPY]))
+	if (draw_button (rects[4], input, app -> icons[(int)ICO_COPY]))
 		io_log ("Copy");
-	if (draw_button (paste_rect, input, app -> icons[(int)ICO_PASTE]))
+	if (draw_button (rects[5], input, app -> icons[(int)ICO_PASTE]))
 		io_log ("Paste");
-	if (draw_button (speed_rect, input, app -> icons[(int)ICO_FULL_SPEED]))
+	if (draw_button (rects[6], input, app -> icons[(int)ICO_FULL_SPEED]))
 		io_log ("Speed Tool");
 }
 
