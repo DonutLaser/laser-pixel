@@ -10,6 +10,8 @@ enum Icon { ICO_FIRST_FRAME, ICO_PREV_FRAME, ICO_PLAY, ICO_PAUSE, ICO_NEXT_FRAME
 			ICO_DRAW, ICO_ERASE, ICO_SELECT, ICO_MOVE, ICO_COPY, ICO_PASTE, ICO_CLEAR,
 			ICO_SAVE, ICO_LOAD, ICO_EXPORT, ICO_FULL_SPEED, ICO_HALF_SPEED };
 
+enum change_frame_type { CF_FIRST, CF_PREV, CF_PLAY, CF_NEXT, CF_LAST };
+
 static void clear_selection (pixel_app* app) {
 	if (!app -> tiles_selected)
 		return;
@@ -55,20 +57,49 @@ static void set_tool (pixel_app* app, Tool tool, const char* text, gui_window wi
 					if (app -> selection_grid[y][x] >= 0) {
 						if (BETWEEN (y + (int)app -> move.offset.y, 0, GRID_TILE_COUNT_Y - 1) &&
 							BETWEEN (x + (int)app -> move.offset.x, 0, GRID_TILE_COUNT_X - 1)) {
-							app -> grid[y + (int)app -> move.offset.y][x + (int)app -> move.offset.x] = 
+							app -> frames[app -> current_frame].grid[y + (int)app -> move.offset.y][x + (int)app -> move.offset.x] = 
 								app -> selection_grid[y][x];
 						}
 					}
 				}
 			}
 		}
-		
+
 		clear_selection (app);
 		app -> paste_executed = false;
 	}
 
 
 	wnd_set_title (window, "Pixel Playground | %s |", text);
+}
+
+static void change_frame (pixel_app* app, change_frame_type type) {
+	switch (type) {
+		case CF_NEXT: {
+			++app -> current_frame;
+			if (app -> current_frame == app -> frame_count)
+				++app -> frame_count;
+			
+			break;
+		}
+		case CF_PREV: {
+			--app -> current_frame;
+			break;
+		}
+		case CF_FIRST: {
+			app -> current_frame = 0;
+			break;
+		}
+		case CF_LAST: {
+			app -> current_frame = app -> frame_count - 1;	
+			break;
+		}
+		case CF_PLAY: {
+			break;
+		}
+	}
+
+	app -> current_frame = CLAMP (app -> current_frame, 0, MAX_FRAME_COUNT - 1);
 }
 
 static bool draw_button (rect r, pixel_input input, gui_image icon) {
@@ -147,7 +178,7 @@ static void draw_controls (pixel_app* app, pixel_input input) {
 		start_pos.x += widths[i] + INNER_MARGIN;
 
 		if (draw_button (r, input, app -> icons[icons[i]]))
-			io_log ("Do Frame action");
+			change_frame (app, (change_frame_type)i);
 	}
 }
 
@@ -174,7 +205,7 @@ static void draw_frame (pixel_app* app, pixel_input input) {
 		offset = y % 2;
 
 		for (unsigned x = 0; x < GRID_TILE_COUNT_X; ++x) {
-			int index = app -> grid[y][x];
+			int index = app -> frames[app -> current_frame].grid[y][x];
 			if (index < 0)
 				tile_color = tile_colors[(x + offset) % 2];
 			else
@@ -190,11 +221,12 @@ static void draw_frame (pixel_app* app, pixel_input input) {
 
 			if (draw_selectable_rect (tile_rect, tile_color, input.mouse_pos, input.lmb_down, is_selected)) {
 				if (app -> tool == T_DRAW)
-					app -> grid[y][x] = app -> color_index;
+					app -> frames[app -> current_frame].grid[y][x] = app -> color_index;
 				else if (app -> tool == T_ERASE) 
-					app -> grid[y][x] = -1;
+					app -> frames[app -> current_frame].grid[y][x] = -1;
 				else if (app -> tool == T_SELECT) {
-					app -> selection_grid[y][x] = app -> grid[y][x] >= 0 ? app -> grid[y][x] : -1;
+					app -> selection_grid[y][x] = app -> frames[app -> current_frame].grid[y][x] >= 0 ? 
+						app -> frames[app -> current_frame].grid[y][x] : -1;
 					app -> tiles_selected = true;
 				}
 			}
@@ -216,7 +248,7 @@ static void handle_move (pixel_app* app, pixel_input input) {
 				for (unsigned y = 0; y < GRID_TILE_COUNT_Y; ++y) {
 					for (unsigned x = 0; x < GRID_TILE_COUNT_X; ++x) {
 						if (app -> selection_grid[y][x] >= 0)
-							app -> grid[y][x] = -1;
+							app -> frames[app -> current_frame].grid[y][x] = -1;
 					}
 				}
 			}
@@ -235,7 +267,7 @@ static void handle_move (pixel_app* app, pixel_input input) {
 					if (app -> selection_grid[y][x] >= 0) {
 						if (BETWEEN (y + (int)app -> move.offset.y, 0, GRID_TILE_COUNT_Y - 1) &&
 							BETWEEN (x + (int)app -> move.offset.x, 0, GRID_TILE_COUNT_X - 1)) {
-							app -> grid[y + (int)app -> move.offset.y][x + (int)app -> move.offset.x] = 
+							app -> frames[app -> current_frame].grid[y + (int)app -> move.offset.y][x + (int)app -> move.offset.x] = 
 								app -> selection_grid[y][x];
 						}
 					}
@@ -383,7 +415,7 @@ static void draw_buttons (pixel_app* app, pixel_input input) {
 	if (draw_button (clear_rect, input, app -> icons[(int)ICO_CLEAR])) {
 		for (unsigned y = 0; y < GRID_TILE_COUNT_Y; ++y) {
 			for (unsigned x = 0; x < GRID_TILE_COUNT_X; ++x)
-				app -> grid[y][x] = -1;
+				app -> frames[app -> current_frame].grid[y][x] = -1;
 		}
 	}
 	if (draw_button (save_rect, input, app -> icons[(int)ICO_SAVE]))
@@ -398,9 +430,11 @@ void pixel_init (gui_window window, void* memory) {
 	pixel_app* app = (pixel_app*)memory;
 	app -> color_index = 0;
 
+	app -> current_frame = 0;
+	app -> frame_count = 1;
 	for (unsigned y = 0; y < GRID_TILE_COUNT_Y; ++y) {
 		for (unsigned x = 0; x < GRID_TILE_COUNT_X; ++x)
-			app -> grid[y][x] = -1;
+			app -> frames[app -> current_frame].grid[y][x] = -1;
 	}
 
 	for (unsigned i = 0; i < ICON_COUNT; ++i) {

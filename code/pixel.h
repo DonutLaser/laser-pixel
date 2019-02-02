@@ -23,13 +23,19 @@ struct pixel_input {
 	bool lmb_up;
 };
 
+struct frame {
+	int grid[GRID_TILE_COUNT_Y][GRID_TILE_COUNT_X];
+};
+
 struct pixel_app {
+	frame frames[MAX_FRAME_COUNT];
 	gui_image icons[ICON_COUNT];
-	int grid[GRID_TILE_COUNT_X][GRID_TILE_COUNT_Y];
-	int selection_grid[GRID_TILE_COUNT_X][GRID_TILE_COUNT_Y];
-	int clipboard_grid[GRID_TILE_COUNT_X][GRID_TILE_COUNT_Y];
+	int selection_grid[GRID_TILE_COUNT_Y][GRID_TILE_COUNT_X];
+	int clipboard_grid[GRID_TILE_COUNT_Y][GRID_TILE_COUNT_X];
 	mouse_drag move; 
 	unsigned color_index;
+	int current_frame;
+	unsigned frame_count;
 	Tool tool;
 	bool tiles_selected;
 	bool paste_executed;

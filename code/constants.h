@@ -112,6 +112,6 @@ static const char* icons[ICON_COUNT] = {
 	"W://pixel//data//images//half_speed.png"
 };
 
-#define SELECTED_TILE_INDEX_MOD		100
+#define MAX_FRAME_COUNT				512	
 
 #endif
