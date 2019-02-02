@@ -155,3 +155,11 @@ bool operator== (v4 lhs, v4 rhs) {
 		return lhs.x == rhs.x && lhs.y == rhs.y &&
 			   lhs.z == rhs.z && lhs.w == rhs.w;
 }
+
+v4 operator+ (v2 lhs, v2 rhs) {
+	return { lhs.x + rhs.x, lhs.y + rhs.y };
+}
+
+v4 operator- (v2 lhs, v2 rhs) {
+	return { lhs.x - rhs.x, lhs.y - rhs.y };
+}

@@ -87,5 +87,7 @@ unsigned digit_count (int value);
 bool is_int_in_range (long long int value); 
 
 bool operator== (v4 lhs, v4 rhs);
+v4 operator+ (v2 lhs, v2 rhs);
+v4 operator- (v2 lhs, v2 rhs);
 
 #endif
