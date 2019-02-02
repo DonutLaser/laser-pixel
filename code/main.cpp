@@ -4,7 +4,7 @@
 #include "pixel.h"
 #include "constants.h"
 
-#if 1
+#if 0
 #define GUI_DEBUG
 #endif
 

@@ -152,6 +152,16 @@ void gl_load_image (gui_image* image) {
 	glBindTexture (GL_TEXTURE_2D, 0);
 }
 
+void gl_begin_clip_rect (v2 window_size, rect clip_rect) {
+	glEnable (GL_SCISSOR_TEST);
+	glScissor ((int)clip_rect.x, (int)window_size.y - (int)clip_rect.height - (int)clip_rect.y,
+			   (int)clip_rect.width, (int)clip_rect.height);
+}
+
+void gl_end_clip_rect () {
+	glDisable (GL_SCISSOR_TEST);
+}
+
 void gl_draw_rect (rect r, v4 color) {
 	glUseProgram (the_shader_color);
 

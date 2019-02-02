@@ -11,6 +11,12 @@ struct gui_window;
 
 enum Tool { T_DRAW, T_ERASE, T_SELECT, T_MOVE, T_COPY, T_PASTE }; 
 
+struct mouse_drag {
+	v2 origin;
+	v2 offset;
+	bool in_progress;
+};
+
 struct pixel_input {
 	v2 mouse_pos;
 	bool lmb_down;
@@ -21,8 +27,10 @@ struct pixel_app {
 	gui_image icons[ICON_COUNT];
 	int grid[GRID_TILE_COUNT_X][GRID_TILE_COUNT_Y];
 	int selection_grid[GRID_TILE_COUNT_X][GRID_TILE_COUNT_Y];
+	mouse_drag move; 
 	unsigned color_index;
 	Tool tool;
+	bool tiles_selected;
 };
 
 void pixel_init (gui_window window, void* memory);
