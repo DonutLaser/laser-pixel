@@ -31,11 +31,26 @@ static void copy_to_clipboard (pixel_app* app) {
 	}
 }
 
+static void paste (pixel_app* app) {
+	for (unsigned y = 0; y < GRID_TILE_COUNT_Y; ++y) {
+		for (unsigned x = 0; x < GRID_TILE_COUNT_X; ++x) {
+			if (app -> clipboard_grid[y][x] >= 0)
+				app -> selection_grid[y][x] = app -> clipboard_grid[y][x];
+			else
+				app -> selection_grid[y][x] = -1;
+		}
+	}
+
+	app -> paste_executed = true;
+}
+
 static void set_tool (pixel_app* app, Tool tool, const char* text, gui_window window) {
 	app -> tool = tool;
 
 	if (app -> tool != T_MOVE)
 		clear_selection (app);
+
+	app -> paste_executed = false;
 
 	wnd_set_title (window, "Pixel Playground | %s |", text);
 }
@@ -185,10 +200,12 @@ static void draw_selected_pixels (pixel_app* app, pixel_input input) {
 			app -> move.origin = input.mouse_pos;
 			app -> move.in_progress = true;
 
-			for (unsigned y = 0; y < GRID_TILE_COUNT_Y; ++y) {
-				for (unsigned x = 0; x < GRID_TILE_COUNT_X; ++x) {
-					if (app -> selection_grid[y][x] >= 0)
-						app -> grid[y][x] = -1;
+			if (!app -> paste_executed) {
+				for (unsigned y = 0; y < GRID_TILE_COUNT_Y; ++y) {
+					for (unsigned x = 0; x < GRID_TILE_COUNT_X; ++x) {
+						if (app -> selection_grid[y][x] >= 0)
+							app -> grid[y][x] = -1;
+					}
 				}
 			}
 		}
@@ -324,7 +341,7 @@ static void draw_tools (pixel_app* app, pixel_input input, gui_window window) {
 	if (draw_button (rects[4], input, app -> icons[(int)ICO_COPY]))
 		copy_to_clipboard (app);
 	if (draw_button (rects[5], input, app -> icons[(int)ICO_PASTE]))
-		io_log ("Paste");
+		paste (app);
 	if (draw_button (rects[6], input, app -> icons[(int)ICO_FULL_SPEED]))
 		io_log ("Speed Tool");
 }
