@@ -135,10 +135,12 @@ static bool draw_button (rect r, pixel_input input, gui_image icon, bool disable
 	bool result = false;
 	v4 outline_color = make_color (OUTLINE_COLOR, 255);
 	v4 actual_color = make_color (DEFAULT_BUTTON_COLOR, 255);
+	unsigned outline = DEFAULT_OUTLINE;
 
 	if (!disabled) {
 		if (is_point_in_rect (r, input.mouse_pos)) {
 			outline_color = make_color (BUTTON_HOVER_OUTLINE_COLOR, 255);
+			outline = BUTTON_HOVER_OUTLINE;
 			if (input.lmb_down)
 				actual_color = make_color (BUTTON_ACTIVE_COLOR, 255);
 
@@ -147,10 +149,10 @@ static bool draw_button (rect r, pixel_input input, gui_image icon, bool disable
 	}
 	
 	rect actual_rect = r;
-	actual_rect.x += DEFAULT_OUTLINE;
-	actual_rect.y += DEFAULT_OUTLINE;
-	actual_rect.width -= DEFAULT_OUTLINE * 2;
-	actual_rect.height -= DEFAULT_OUTLINE * 2;
+	actual_rect.x += outline;
+	actual_rect.y += outline;
+	actual_rect.width -= outline * 2;
+	actual_rect.height -= outline * 2;
 
 	gl_draw_rect (r, outline_color, disabled);
 	gl_draw_rect (actual_rect, actual_color, disabled);
