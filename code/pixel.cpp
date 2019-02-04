@@ -24,10 +24,20 @@ static void clear_selection (pixel_app* app) {
 }
 
 static void copy_to_clipboard (pixel_app* app) {
-	for (unsigned y = 0; y < GRID_TILE_COUNT_Y; ++y) {
-		for (unsigned x = 0; x < GRID_TILE_COUNT_X; ++x) {
-			if (app -> selection_grid[y][x] >= 0)
-				app -> clipboard_grid[y][x] = app -> selection_grid[y][x];
+	if (app -> tiles_selected) {
+		for (unsigned y = 0; y < GRID_TILE_COUNT_Y; ++y) {
+			for (unsigned x = 0; x < GRID_TILE_COUNT_X; ++x) {
+				if (app -> selection_grid[y][x] >= 0)
+					app -> clipboard_grid[y][x] = app -> selection_grid[y][x];
+			}
+		}
+	}
+	else {
+		for (unsigned y = 0; y < GRID_TILE_COUNT_Y; ++y) {
+			for (unsigned x = 0; x < GRID_TILE_COUNT_X; ++x) {
+				if (app -> frames[app -> current_frame].grid[y][x] >= 0)
+					app -> clipboard_grid[y][x] = app -> frames[app -> current_frame].grid[y][x];
+			}
 		}
 	}
 }
@@ -416,8 +426,9 @@ static void draw_tools (pixel_app* app, pixel_input input, gui_window window) {
 		set_tool (app, T_SELECT, "Select Tool", window);
 	if (draw_button (rects[3], input, app -> icons[(int)ICO_MOVE]))
 		set_tool (app, T_MOVE, "Move Tool", window);
-	if (draw_button (rects[4], input, app -> icons[(int)ICO_COPY]))
+	if (draw_button (rects[4], input, app -> icons[(int)ICO_COPY])) {
 		copy_to_clipboard (app);
+	}
 	if (draw_button (rects[5], input, app -> icons[(int)ICO_PASTE]))
 		paste (app);
 	if (draw_button (rects[6], input, app -> icons[app -> speed == PS_FULL ? (int)ICO_FULL_SPEED : (int)ICO_HALF_SPEED]))
