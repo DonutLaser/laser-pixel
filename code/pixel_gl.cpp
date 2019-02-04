@@ -11,6 +11,8 @@
 static unsigned the_vao;
 static unsigned the_shader_color;
 static unsigned the_shader_texture;
+static unsigned the_shader_color_desaturated;
+static unsigned the_shader_texture_desaturated;
 
 static bool is_shader_compiled_successfully (unsigned shader, char* buffer, unsigned buffer_size) {
 	int success;
@@ -136,6 +138,10 @@ void gl_init (gui_window window) {
 									"W:\\pixel\\data\\shaders\\color.frag", window);
 	the_shader_texture = load_shader ("W:\\pixel\\data\\shaders\\texture.vert",
 									  "W:\\pixel\\data\\shaders\\texture.frag", window);
+	the_shader_color_desaturated = load_shader ("W:\\pixel\\data\\shaders\\color.vert",
+												"W:\\pixel\\data\\shaders\\color_desaturated.frag", window);
+	the_shader_texture_desaturated = load_shader ("W:\\pixel\\data\\shaders\\texture.vert",
+												  "W:\\pixel\\data\\shaders\\texture_desaturated.frag", window);
 
 	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -162,8 +168,8 @@ void gl_end_clip_rect () {
 	glDisable (GL_SCISSOR_TEST);
 }
 
-void gl_draw_rect (rect r, v4 color) {
-	glUseProgram (the_shader_color);
+void gl_draw_rect (rect r, v4 color, bool desaturate) {
+	glUseProgram (desaturate ? the_shader_color_desaturated : the_shader_color);
 
 	glEnable (GL_BLEND);
 	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -184,8 +190,8 @@ void gl_draw_rect (rect r, v4 color) {
 	glBindVertexArray (0);
 }
 
-void gl_draw_image (rect r, v4 color, gui_image image) {
-	glUseProgram (the_shader_texture);
+void gl_draw_image (rect r, v4 color, gui_image image, bool desaturate) {
+	glUseProgram (desaturate ? the_shader_texture_desaturated : the_shader_texture);
 
 	m4 model = make_identity ();
 	model = translate (model, make_v3 (r.x, r.y, 0.0f));

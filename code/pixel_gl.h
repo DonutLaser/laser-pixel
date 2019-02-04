@@ -15,7 +15,7 @@ void gl_load_image (gui_image* image);
 void gl_begin_clip_rect (v2 window_size, rect clip_rect);
 void gl_end_clip_rect ();
 
-void gl_draw_rect (rect r, v4 color);
-void gl_draw_image (rect r, v4 color, gui_image image);
+void gl_draw_rect (rect r, v4 color, bool desaturate);
+void gl_draw_image (rect r, v4 color, gui_image image, bool desaturate);
 
 #endif

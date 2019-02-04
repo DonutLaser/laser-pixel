@@ -131,28 +131,30 @@ static void change_speed (pixel_app* app) {
 	}
 }
 
-static bool draw_button (rect r, pixel_input input, gui_image icon) {
+static bool draw_button (rect r, pixel_input input, gui_image icon, bool disabled) {
 	bool result = false;
 	v4 outline_color = make_color (OUTLINE_COLOR, 255);
 	v4 actual_color = make_color (DEFAULT_BUTTON_COLOR, 255);
 
-	if (is_point_in_rect (r, input.mouse_pos)) {
-		outline_color = make_color (BUTTON_HOVER_OUTLINE_COLOR, 255);
-		if (input.lmb_down)
-			actual_color = make_color (BUTTON_ACTIVE_COLOR, 255);
+	if (!disabled) {
+		if (is_point_in_rect (r, input.mouse_pos)) {
+			outline_color = make_color (BUTTON_HOVER_OUTLINE_COLOR, 255);
+			if (input.lmb_down)
+				actual_color = make_color (BUTTON_ACTIVE_COLOR, 255);
 
-		result = input.lmb_up;
+			result = input.lmb_up;
+		}
 	}
-
+	
 	rect actual_rect = r;
 	actual_rect.x += DEFAULT_OUTLINE;
 	actual_rect.y += DEFAULT_OUTLINE;
 	actual_rect.width -= DEFAULT_OUTLINE * 2;
 	actual_rect.height -= DEFAULT_OUTLINE * 2;
 
-	gl_draw_rect (r, outline_color);
-	gl_draw_rect (actual_rect, actual_color);
-	gl_draw_image (r, make_color (255, 255, 255, 255), icon);
+	gl_draw_rect (r, outline_color, disabled);
+	gl_draw_rect (actual_rect, actual_color, disabled);
+	gl_draw_image (r, make_color (255, 255, 255, 255), icon, disabled);
 
 	return result;
 }
@@ -164,21 +166,23 @@ static void draw_selected_rect (rect r, v4 color) {
 	selected_rect.width -= SELECTION_INDICATOR_OUTLINE * 2;
 	selected_rect.height -= SELECTION_INDICATOR_OUTLINE * 2;
 
-	gl_draw_rect (r, make_color (DEFAULT_BUTTON_ICON_COLOR, 255));
-	gl_draw_rect (selected_rect, color);
+	gl_draw_rect (r, make_color (DEFAULT_BUTTON_ICON_COLOR, 255), false);
+	gl_draw_rect (selected_rect, color, false);
 }
 
-static bool draw_selectable_rect (rect r, v4 color, v2 mouse_pos, bool mb, bool is_selected) {
-	if (is_selected) {
-		draw_selected_rect (r, color);
-		return false;
+static bool draw_selectable_rect (rect r, v4 color, v2 mouse_pos, bool mb, bool is_selected, bool disabled) {
+	if (!disabled) {
+		if (is_selected) {
+			draw_selected_rect (r, color);
+			return false;
+		}
+		else if (is_point_in_rect (r, mouse_pos)) {
+			draw_selected_rect (r, color);
+			return mb;
+		}
 	}
-	else if (is_point_in_rect (r, mouse_pos)) {
-		draw_selected_rect (r, color);
-		return mb;
-	}
-
-	gl_draw_rect (r, color);
+	
+	gl_draw_rect (r, color, false);
 	return false;
 }
 
@@ -207,7 +211,10 @@ static void draw_controls (pixel_app* app, pixel_input input) {
 		r = make_rect (start_pos, (float)widths[i], SMALL_BUTTON_HEIGHT);
 		start_pos.x += widths[i] + INNER_MARGIN;
 
-		if (draw_button (r, input, app -> icons[(i == 2 && app -> is_playing) ? icons[5] : icons[i]]))
+		unsigned icon = (i == 2 && app -> is_playing) ? icons[5] : icons[i];
+		bool disabled = i != 2 && app -> is_playing;
+
+		if (draw_button (r, input, app -> icons[icon], disabled))
 			change_frame (app, (change_frame_type)i);
 	}
 }
@@ -225,7 +232,7 @@ static void draw_frame (pixel_app* app, pixel_input input) {
 	rect outline_rect = make_rect (start_pos,
 								   GRID_TILE_SIZE * GRID_TILE_COUNT_X + GRID_OUTLINE * 2, 
 								   GRID_TILE_SIZE * GRID_TILE_COUNT_Y + GRID_OUTLINE * 2);
-	gl_draw_rect (outline_rect, make_color (OUTLINE_COLOR, 255));
+	gl_draw_rect (outline_rect, make_color (OUTLINE_COLOR, 255), false);
 
 	start_pos.x += GRID_OUTLINE;
 	start_pos.y += GRID_OUTLINE;
@@ -256,7 +263,7 @@ static void draw_frame (pixel_app* app, pixel_input input) {
 
 			bool is_selected = app -> selection_grid[y][x] >= 0 && app -> current_tool != T_MOVE;
 
-			if (draw_selectable_rect (tile_rect, tile_color, input.mouse_pos, input.lmb_down, is_selected)) {
+			if (draw_selectable_rect (tile_rect, tile_color, input.mouse_pos, input.lmb_down, is_selected, app -> is_playing)) {
 				if (app -> current_tool == T_DRAW)
 					app -> frames[app -> current_frame].grid[y][x] = app -> color_index;
 				else if (app -> current_tool == T_ERASE) 
@@ -368,7 +375,7 @@ static void draw_selected_pixels (pixel_app* app, pixel_input input) {
  			if (app -> selection_grid[y][x] >= 0) 
  				draw_selected_rect (tile_rect, tile_color);
 			else
-				gl_draw_rect (tile_rect, tile_color);
+				gl_draw_rect (tile_rect, tile_color, false);
 		}
 	}
 }
@@ -379,7 +386,7 @@ static void draw_colors (pixel_app* app, pixel_input input) {
 	rect outline_rect = make_rect (start_pos, 
 								   COLOR_TILE_SIZE * COLOR_TILE_COUNT_X + GRID_OUTLINE * 2,
 								   COLOR_TILE_SIZE * COLOR_TILE_COUNT_Y + GRID_OUTLINE * 2);
-	gl_draw_rect (outline_rect, make_color (OUTLINE_COLOR, 255));
+	gl_draw_rect (outline_rect, make_color (OUTLINE_COLOR, 255), false);
 
 	start_pos.x += GRID_OUTLINE;
 	start_pos.y += GRID_OUTLINE;
@@ -395,7 +402,7 @@ static void draw_colors (pixel_app* app, pixel_input input) {
 			tile_rect.y = start_pos.y + y * COLOR_TILE_SIZE;
 
 			if (draw_selectable_rect (tile_rect, tile_color, input.mouse_pos, input.lmb_up, 
-				app -> color_index == x + y * COLOR_TILE_COUNT_X)) {
+				app -> color_index == x + y * COLOR_TILE_COUNT_X, app -> is_playing)) {
 				app -> color_index = x + y * COLOR_TILE_COUNT_X;
 			}
 		}
@@ -418,20 +425,20 @@ static void draw_tools (pixel_app* app, pixel_input input, gui_window window) {
 		}
 	}
 
-	if (draw_button (rects[0], input, app -> icons[(int)ICO_DRAW]))
+	if (draw_button (rects[0], input, app -> icons[(int)ICO_DRAW], app -> is_playing))
 		set_tool (app, T_DRAW, "Draw Tool", window);
-	if (draw_button (rects[1], input, app -> icons[(int)ICO_ERASE]))
+	if (draw_button (rects[1], input, app -> icons[(int)ICO_ERASE], app -> is_playing))
 		set_tool (app, T_ERASE, "Erase Tool", window);
-	if (draw_button (rects[2], input, app -> icons[(int)ICO_SELECT]))
+	if (draw_button (rects[2], input, app -> icons[(int)ICO_SELECT], app -> is_playing))
 		set_tool (app, T_SELECT, "Select Tool", window);
-	if (draw_button (rects[3], input, app -> icons[(int)ICO_MOVE]))
+	if (draw_button (rects[3], input, app -> icons[(int)ICO_MOVE], app -> is_playing))
 		set_tool (app, T_MOVE, "Move Tool", window);
-	if (draw_button (rects[4], input, app -> icons[(int)ICO_COPY])) {
+	if (draw_button (rects[4], input, app -> icons[(int)ICO_COPY], app -> is_playing)) {
 		copy_to_clipboard (app);
 	}
-	if (draw_button (rects[5], input, app -> icons[(int)ICO_PASTE]))
+	if (draw_button (rects[5], input, app -> icons[(int)ICO_PASTE], app -> is_playing))
 		paste (app);
-	if (draw_button (rects[6], input, app -> icons[app -> speed == PS_FULL ? (int)ICO_FULL_SPEED : (int)ICO_HALF_SPEED]))
+	if (draw_button (rects[6], input, app -> icons[app -> speed == PS_FULL ? (int)ICO_FULL_SPEED : (int)ICO_HALF_SPEED], app -> is_playing))
 		change_speed (app);
 }
 
@@ -450,17 +457,17 @@ static void draw_buttons (pixel_app* app, pixel_input input) {
 	rect export_rect = make_rect (start_pos, EXPORT_BUTTON_WIDTH, SMALL_BUTTON_HEIGHT);
 	start_pos.x += EXPORT_BUTTON_WIDTH + INNER_MARGIN;
 
-	if (draw_button (clear_rect, input, app -> icons[(int)ICO_CLEAR])) {
+	if (draw_button (clear_rect, input, app -> icons[(int)ICO_CLEAR], app -> is_playing)) {
 		for (unsigned y = 0; y < GRID_TILE_COUNT_Y; ++y) {
 			for (unsigned x = 0; x < GRID_TILE_COUNT_X; ++x)
 				app -> frames[app -> current_frame].grid[y][x] = -1;
 		}
 	}
-	if (draw_button (save_rect, input, app -> icons[(int)ICO_SAVE]))
+	if (draw_button (save_rect, input, app -> icons[(int)ICO_SAVE], app -> is_playing))
 		io_log ("Save animation");
-	if (draw_button (load_rect, input, app -> icons[(int)ICO_LOAD]))
+	if (draw_button (load_rect, input, app -> icons[(int)ICO_LOAD], app -> is_playing))
 		io_log ("Load animation");
-	if (draw_button (export_rect, input, app -> icons[(int)ICO_EXPORT]))
+	if (draw_button (export_rect, input, app -> icons[(int)ICO_EXPORT], app -> is_playing))
 		io_log ("Export animation");
 }
 
