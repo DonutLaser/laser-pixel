@@ -114,4 +114,6 @@ static const char* icons[ICON_COUNT] = {
 
 #define MAX_FRAME_COUNT				512	
 
+#define FRAMES_PER_SECOND			6
+
 #endif

@@ -4,7 +4,6 @@
 
 #include "../third_party/gui_io.h"
 #include "../third_party/gui_window.h"
-#include "../third_party/gui_resources.h"
 
 enum Icon { ICO_FIRST_FRAME, ICO_PREV_FRAME, ICO_PLAY, ICO_PAUSE, ICO_NEXT_FRAME, ICO_LAST_FRAME,
 			ICO_DRAW, ICO_ERASE, ICO_SELECT, ICO_MOVE, ICO_COPY, ICO_PASTE, ICO_CLEAR,
@@ -47,10 +46,10 @@ static void paste (pixel_app* app) {
 	app -> tiles_selected = true;
 }
 
-static void set_tool (pixel_app* app, Tool tool, const char* text, gui_window window) {
-	app -> tool = tool;
+static void set_tool (pixel_app* app, tool t, const char* text, gui_window window) {
+	app -> current_tool = t;
 
-	if (app -> tool != T_MOVE) {
+	if (app -> current_tool != T_MOVE) {
 		if (app -> paste_executed) {
 			for (unsigned y = 0; y < GRID_TILE_COUNT_Y; ++y) {
 				for (unsigned x = 0; x < GRID_TILE_COUNT_X; ++x) {
@@ -77,9 +76,15 @@ static void change_frame (pixel_app* app, change_frame_type type) {
 	switch (type) {
 		case CF_NEXT: {
 			++app -> current_frame;
-			if (app -> current_frame == app -> frame_count)
-				++app -> frame_count;
-			
+			if (!app -> is_playing) {
+				if (app -> current_frame == app -> frame_count)
+					++app -> frame_count;
+			}
+			else {
+				if (app -> current_frame == app -> frame_count)
+					app -> current_frame = 0;
+			}
+
 			break;
 		}
 		case CF_PREV: {
@@ -95,11 +100,25 @@ static void change_frame (pixel_app* app, change_frame_type type) {
 			break;
 		}
 		case CF_PLAY: {
+			app -> current_frame = 0;
+			app -> is_playing = !app -> is_playing;
+			timer_reset (&app -> play_timer);
 			break;
 		}
 	}
 
 	app -> current_frame = CLAMP (app -> current_frame, 0, MAX_FRAME_COUNT - 1);
+}
+
+static void change_speed (pixel_app* app) {
+	if (app -> speed == PS_FULL) {
+		app -> speed = PS_HALF;
+		app -> play_timer.target_miliseconds = 1000 / (FRAMES_PER_SECOND / 2);
+	}
+	else if (app -> speed == PS_HALF) {
+		app -> speed = PS_FULL;
+		app -> play_timer.target_miliseconds = 1000 / FRAMES_PER_SECOND;
+	}
 }
 
 static bool draw_button (rect r, pixel_input input, gui_image icon) {
@@ -183,6 +202,13 @@ static void draw_controls (pixel_app* app, pixel_input input) {
 }
 
 static void draw_frame (pixel_app* app, pixel_input input) {
+	if (app -> is_playing) {
+		if (timer_get_value (app -> play_timer) >= app -> play_timer.target_miliseconds) {
+			change_frame (app, CF_NEXT);
+			timer_reset (&app -> play_timer);
+		}
+	}
+
 	v2 start_pos = make_v2 (GRID_POSITION);
 
 	rect outline_rect = make_rect (start_pos,
@@ -214,17 +240,17 @@ static void draw_frame (pixel_app* app, pixel_input input) {
 			tile_rect.x = start_pos.x + x * GRID_TILE_SIZE;
 			tile_rect.y = start_pos.y + y * GRID_TILE_SIZE;
 
-			if (app -> tool == T_MOVE)
+			if (app -> current_tool == T_MOVE)
 				input.mouse_pos = make_v2 (-1, -1);
 
-			bool is_selected = app -> selection_grid[y][x] >= 0 && app -> tool != T_MOVE;
+			bool is_selected = app -> selection_grid[y][x] >= 0 && app -> current_tool != T_MOVE;
 
 			if (draw_selectable_rect (tile_rect, tile_color, input.mouse_pos, input.lmb_down, is_selected)) {
-				if (app -> tool == T_DRAW)
+				if (app -> current_tool == T_DRAW)
 					app -> frames[app -> current_frame].grid[y][x] = app -> color_index;
-				else if (app -> tool == T_ERASE) 
+				else if (app -> current_tool == T_ERASE) 
 					app -> frames[app -> current_frame].grid[y][x] = -1;
-				else if (app -> tool == T_SELECT) {
+				else if (app -> current_tool == T_SELECT) {
 					app -> selection_grid[y][x] = app -> frames[app -> current_frame].grid[y][x] >= 0 ? 
 						app -> frames[app -> current_frame].grid[y][x] : -1;
 					app -> tiles_selected = true;
@@ -303,7 +329,7 @@ static void handle_move (pixel_app* app, pixel_input input) {
 }
 
 static void draw_selected_pixels (pixel_app* app, pixel_input input) {
-	if (app -> tool == T_MOVE)
+	if (app -> current_tool == T_MOVE)
 		handle_move (app, input);
 	
 	v2 start_pos = make_v2 (GRID_POSITION);
@@ -394,7 +420,7 @@ static void draw_tools (pixel_app* app, pixel_input input, gui_window window) {
 	if (draw_button (rects[5], input, app -> icons[(int)ICO_PASTE]))
 		paste (app);
 	if (draw_button (rects[6], input, app -> icons[(int)ICO_FULL_SPEED]))
-		io_log ("Speed Tool");
+		change_speed (app);
 }
 
 static void draw_buttons (pixel_app* app, pixel_input input) {
@@ -448,6 +474,11 @@ void pixel_init (gui_window window, void* memory) {
 	app -> move.offset = make_v2 (0, 0);
 
 	app -> tiles_selected = false;
+	app -> is_playing = false;
+
+	app -> play_timer = { };
+	app -> play_timer.target_miliseconds = 1000 / FRAMES_PER_SECOND;
+	app -> speed = PS_FULL;
 
 	gl_init (window);
 }
