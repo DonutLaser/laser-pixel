@@ -188,7 +188,8 @@ static void draw_controls (pixel_app* app, pixel_input input) {
 		(int)ICO_PREV_FRAME,
 		(int)ICO_PLAY,
 		(int)ICO_NEXT_FRAME,
-		(int)ICO_LAST_FRAME
+		(int)ICO_LAST_FRAME,
+		(int)ICO_PAUSE
 	};
 
 	rect r = { };
@@ -196,7 +197,7 @@ static void draw_controls (pixel_app* app, pixel_input input) {
 		r = make_rect (start_pos, (float)widths[i], SMALL_BUTTON_HEIGHT);
 		start_pos.x += widths[i] + INNER_MARGIN;
 
-		if (draw_button (r, input, app -> icons[icons[i]]))
+		if (draw_button (r, input, app -> icons[(i == 2 && app -> is_playing) ? icons[5] : icons[i]]))
 			change_frame (app, (change_frame_type)i);
 	}
 }
@@ -419,7 +420,7 @@ static void draw_tools (pixel_app* app, pixel_input input, gui_window window) {
 		copy_to_clipboard (app);
 	if (draw_button (rects[5], input, app -> icons[(int)ICO_PASTE]))
 		paste (app);
-	if (draw_button (rects[6], input, app -> icons[(int)ICO_FULL_SPEED]))
+	if (draw_button (rects[6], input, app -> icons[app -> speed == PS_FULL ? (int)ICO_FULL_SPEED : (int)ICO_HALF_SPEED]))
 		change_speed (app);
 }
 
