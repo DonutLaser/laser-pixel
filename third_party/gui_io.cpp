@@ -131,6 +131,51 @@ bool io_was_file_changed (file f) {
 	return false;
 }
 
+bool io_show_save_file_dialog (const char* title, const char* file_type, const char* extension, char** result) {
+	char* filter = (char*)malloc (sizeof (char) * PATH_MAX);
+	unsigned file_type_count = str_length (file_type);
+	unsigned extension_count = str_length (extension);
+
+	for (unsigned i = 0; i < file_type_count; ++i)
+		filter[i] = file_type[i];
+
+	filter[file_type_count] = ' ';
+	filter[file_type_count + 1] = '(';
+	filter[file_type_count + 2] = '*';
+	filter[file_type_count + 3] = '.';
+
+	for (unsigned i = file_type_count + 4; i < file_type_count + 4 + extension_count; ++i)
+		filter[i] = extension[i - file_type_count - 4];
+
+	filter[file_type_count + 4 + extension_count] = ')';
+	filter[file_type_count + 5 + extension_count] = '\0';
+	filter[file_type_count + 6 + extension_count] = '\0';
+
+	char file_string[PATH_MAX] = "";
+
+	OPENFILENAME open_file_name = { };
+	open_file_name.lStructSize = sizeof (OPENFILENAME);
+	open_file_name.lpstrFilter = filter;
+	open_file_name.lpstrFile = file_string;
+	open_file_name.nMaxFile = PATH_MAX;
+	open_file_name.lpstrTitle = "Save Pixel Playground Project...";
+	open_file_name.Flags = OFN_CREATEPROMPT | OFN_DONTADDTORECENT | OFN_NONETWORKBUTTON | OFN_OVERWRITEPROMPT;
+	open_file_name.nFileOffset = 0;
+	open_file_name.lpstrDefExt = extension;
+
+	bool res = false;
+	if (GetSaveFileName (&open_file_name)) {
+		unsigned length = str_length (open_file_name.lpstrFile);
+		*result = (char*)malloc (sizeof (char) * (length + 1));
+		str_copy (open_file_name.lpstrFile, *result, 0, length);
+		(*result)[length] = '\0';
+		res = true;
+	}
+
+	free (filter);
+	return res;
+}
+
 void io_log (const char* text, ...) {
 	char message[128];
 	unsigned written = 0;

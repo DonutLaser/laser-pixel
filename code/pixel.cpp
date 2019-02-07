@@ -4,6 +4,7 @@
 
 #include "../third_party/gui_io.h"
 #include "../third_party/gui_window.h"
+#include "../third_party/gui_string_buffer.h"
 
 enum Icon { ICO_FIRST_FRAME, ICO_PREV_FRAME, ICO_PLAY, ICO_PAUSE, ICO_NEXT_FRAME, ICO_LAST_FRAME,
 			ICO_DRAW, ICO_ERASE, ICO_SELECT, ICO_MOVE, ICO_COPY, ICO_PASTE, ICO_CLEAR,
@@ -89,6 +90,11 @@ static void change_frame (pixel_app* app, change_frame_type type) {
 			if (!app -> is_playing) {
 				if (app -> current_frame == app -> frame_count)
 					++app -> frame_count;
+
+				for (unsigned y = 0; y < GRID_TILE_COUNT_X; ++y) {
+					for (unsigned x = 0; x < GRID_TILE_COUNT_X; ++x)
+						app -> frames[app -> current_frame].grid[y][x] = -1;
+				}
 			}
 			else {
 				if (app -> current_frame == app -> frame_count)
@@ -129,6 +135,48 @@ static void change_speed (pixel_app* app) {
 		app -> speed = PS_FULL;
 		app -> play_timer.target_miliseconds = 1000 / FRAMES_PER_SECOND;
 	}
+}
+
+static void save (pixel_app* app) {
+	char* path = NULL;
+	if (io_show_save_file_dialog ("Save Pixel Playground Project", "Pixel Playground Project", "ppp", &path)) {
+		file f = io_open (path, OM_WRITE);
+
+		char* frame_count = str_format ("%d\n\n", app -> frame_count);
+		str_buffer file_contents = make_str_buffer (frame_count);
+		free (frame_count);
+
+		unsigned start_index = 0;
+		for (unsigned i = 0; i < app -> frame_count; ++i) {
+			int previous_color = app -> frames[i].grid[0][0];
+			for (unsigned y = 0; y < GRID_TILE_COUNT_Y; ++y) {
+				for (unsigned x = 0; x < GRID_TILE_COUNT_X; ++x) {
+					int color = app -> frames[i].grid[y][x];
+					if (color != previous_color) {
+						unsigned end_index = x + y * GRID_TILE_COUNT_X;
+						unsigned final_index = end_index - start_index;
+
+						char* text = str_format ("%d[%d] ", previous_color, final_index);
+						str_buffer_insert_text (&file_contents, text);
+						free (text);
+
+						start_index = end_index;
+					}
+
+					previous_color = color;
+				}
+			}
+
+			str_buffer_insert (&file_contents, '\n');
+		}
+
+		char* full_text = str_buffer_get_text (file_contents);
+		io_write (&f, full_text);
+
+		io_close (&f);
+	}
+
+	free (path);
 }
 
 static bool draw_button (rect r, pixel_input input, gui_image icon, bool disabled) {
@@ -466,7 +514,7 @@ static void draw_buttons (pixel_app* app, pixel_input input) {
 		}
 	}
 	if (draw_button (save_rect, input, app -> icons[(int)ICO_SAVE], app -> is_playing))
-		io_log ("Save animation");
+		save (app);
 	if (draw_button (load_rect, input, app -> icons[(int)ICO_LOAD], app -> is_playing))
 		io_log ("Load animation");
 	if (draw_button (export_rect, input, app -> icons[(int)ICO_EXPORT], app -> is_playing))

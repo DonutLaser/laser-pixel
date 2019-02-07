@@ -3,6 +3,8 @@
 
 #include <windows.h>
 
+#define PATH_MAX	128	
+
 enum write_mode { WM_APPEND, WM_OVERWRITE };
 enum open_mode { OM_READ, OM_WRITE, OM_READWRITE };
 
@@ -23,6 +25,9 @@ void io_close (file* f);
 
 bool io_was_file_changed (file f);
 bool io_was_file_changed (const char* path);
+
+bool io_show_save_file_dialog (const char* title, const char* file_type, const char* extension, char** result);
+char* io_show_load_file_dialog ();
 
 void io_log (const char* text, ...);
 void io_log_warning (const char* text, ...);

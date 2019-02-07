@@ -41,5 +41,6 @@ unsigned str_length (const char* text);
 void str_copy (const char* src, char* dest, unsigned start_index, unsigned copy_size);
 char* str_concatenate (const char* left, const char* right);
 bool str_equal (const char* left, const char* right);
+char* str_format (const char* format, ...);
 
 #endif

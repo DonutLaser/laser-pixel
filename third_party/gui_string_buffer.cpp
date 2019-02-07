@@ -1,6 +1,7 @@
 #include "gui_string_buffer.h"
 
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "gui_window.h"
 #include "gui_math.h"
@@ -437,4 +438,26 @@ bool str_equal (const char* left, const char* right) {
 	}
 
 	return true;
+}
+
+char* str_format (const char* format, ...) {
+	char message[512];
+	unsigned written = 0;
+
+	va_list arguments;
+	va_start (arguments, format);
+
+	written = _vsnprintf_s (message, sizeof (message) - 1, format, arguments);
+
+	if (written > 0) {
+		char* result = (char*)malloc (sizeof (char*) * (written + 1));
+		str_copy (message, result, 0, written);
+		result[written] = '\0';
+
+		return result;
+	}
+
+	va_end (arguments);
+
+	return NULL;
 }
