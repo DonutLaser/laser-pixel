@@ -112,7 +112,7 @@ static const char* icons[ICON_COUNT] = {
 	"W://pixel//data//images//half_speed.png"
 };
 
-#define MAX_FRAME_COUNT				512	
+#define MAX_FRAME_COUNT				256	
 
 #define FRAMES_PER_SECOND			6
 

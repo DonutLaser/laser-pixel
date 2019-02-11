@@ -1,6 +1,7 @@
 #include "pixel.h"
 
 #include "pixel_gl.h"
+#include "pixel_parser.h"
 
 #include "../third_party/gui_io.h"
 #include "../third_party/gui_window.h"
@@ -36,8 +37,8 @@ static void copy_to_clipboard (pixel_app* app) {
 	else {
 		for (unsigned y = 0; y < GRID_TILE_COUNT_Y; ++y) {
 			for (unsigned x = 0; x < GRID_TILE_COUNT_X; ++x) {
-				if (app -> frames[app -> current_frame].grid[y][x] >= 0)
-					app -> clipboard_grid[y][x] = app -> frames[app -> current_frame].grid[y][x];
+				if (app -> project.frames[app -> current_frame].grid[y][x] >= 0)
+					app -> clipboard_grid[y][x] = app -> project.frames[app -> current_frame].grid[y][x];
 			}
 		}
 	}
@@ -67,7 +68,7 @@ static void set_tool (pixel_app* app, tool t, const char* text, gui_window windo
 					if (app -> selection_grid[y][x] >= 0) {
 						if (BETWEEN (y + (int)app -> move.offset.y, 0, GRID_TILE_COUNT_Y - 1) &&
 							BETWEEN (x + (int)app -> move.offset.x, 0, GRID_TILE_COUNT_X - 1)) {
-							app -> frames[app -> current_frame].grid[y + (int)app -> move.offset.y][x + (int)app -> move.offset.x] = 
+							app -> project.frames[app -> current_frame].grid[y + (int)app -> move.offset.y][x + (int)app -> move.offset.x] = 
 								app -> selection_grid[y][x];
 						}
 					}
@@ -88,16 +89,16 @@ static void change_frame (pixel_app* app, change_frame_type type) {
 		case CF_NEXT: {
 			++app -> current_frame;
 			if (!app -> is_playing) {
-				if (app -> current_frame == app -> frame_count)
-					++app -> frame_count;
-
-				for (unsigned y = 0; y < GRID_TILE_COUNT_X; ++y) {
-					for (unsigned x = 0; x < GRID_TILE_COUNT_X; ++x)
-						app -> frames[app -> current_frame].grid[y][x] = -1;
+				if (app -> current_frame == app -> project.frame_count) {
+					++app -> project.frame_count;
+					for (unsigned y = 0; y < GRID_TILE_COUNT_X; ++y) {
+						for (unsigned x = 0; x < GRID_TILE_COUNT_X; ++x)
+							app -> project.frames[app -> current_frame].grid[y][x] = -1;
+					}
 				}
 			}
 			else {
-				if (app -> current_frame == app -> frame_count)
+				if (app -> current_frame == app -> project.frame_count)
 					app -> current_frame = 0;
 			}
 
@@ -112,7 +113,7 @@ static void change_frame (pixel_app* app, change_frame_type type) {
 			break;
 		}
 		case CF_LAST: {
-			app -> current_frame = app -> frame_count - 1;	
+			app -> current_frame = app -> project.frame_count - 1;	
 			break;
 		}
 		case CF_PLAY: {
@@ -142,16 +143,16 @@ static void save (pixel_app* app) {
 	if (io_show_save_file_dialog ("Save Pixel Playground Project", "Pixel Playground Project", "ppp", &path)) {
 		file f = io_open (path, OM_WRITE);
 
-		char* frame_count = str_format ("%d\n\n", app -> frame_count);
+		char* frame_count = str_format ("%d\n\n", app -> project.frame_count);
 		str_buffer file_contents = make_str_buffer (frame_count);
 		free (frame_count);
 
-		unsigned start_index = 0;
-		for (unsigned i = 0; i < app -> frame_count; ++i) {
-			int previous_color = app -> frames[i].grid[0][0];
+		for (unsigned i = 0; i < app -> project.frame_count; ++i) {
+			unsigned start_index = 0;
+			int previous_color = app -> project.frames[i].grid[0][0];
 			for (unsigned y = 0; y < GRID_TILE_COUNT_Y; ++y) {
 				for (unsigned x = 0; x < GRID_TILE_COUNT_X; ++x) {
-					int color = app -> frames[i].grid[y][x];
+					int color = app -> project.frames[i].grid[y][x];
 					if (color != previous_color) {
 						unsigned end_index = x + y * GRID_TILE_COUNT_X;
 						unsigned final_index = end_index - start_index;
@@ -167,16 +168,35 @@ static void save (pixel_app* app) {
 				}
 			}
 
-			str_buffer_insert (&file_contents, '\n');
+			char* text = str_format ("%d[%d] ", previous_color, (GRID_TILE_COUNT_Y * GRID_TILE_COUNT_X) - start_index);
+			str_buffer_insert_text (&file_contents, text);
+			free (text);
+
+			str_buffer_insert_text (&file_contents, "-\n");
 		}
 
 		char* full_text = str_buffer_get_text (file_contents);
 		io_write (&f, full_text);
+		free (full_text);
 
 		io_close (&f);
 	}
 
 	free (path);
+}
+
+static void load (pixel_app* app) {
+	char* path = NULL;
+	if (io_show_load_file_dialog ("Load Pixel Playground Project", "Pixel Playground Project", "ppp", &path)) {
+	 	file f = io_open (path, OM_READ);
+
+	 	if (io_read (&f))
+	 		app -> project = parse_ppp (f.contents);
+
+	 	io_close (&f);
+	 }
+
+	 free (path);
 }
 
 static bool draw_button (rect r, pixel_input input, gui_image icon, bool disabled) {
@@ -299,7 +319,7 @@ static void draw_frame (pixel_app* app, pixel_input input) {
 		offset = y % 2;
 
 		for (unsigned x = 0; x < GRID_TILE_COUNT_X; ++x) {
-			int index = app -> frames[app -> current_frame].grid[y][x];
+			int index = app -> project.frames[app -> current_frame].grid[y][x];
 			if (index < 0)
 				tile_color = tile_colors[(x + offset) % 2];
 			else
@@ -315,12 +335,12 @@ static void draw_frame (pixel_app* app, pixel_input input) {
 
 			if (draw_selectable_rect (tile_rect, tile_color, input.mouse_pos, input.lmb_down, is_selected, app -> is_playing)) {
 				if (app -> current_tool == T_DRAW)
-					app -> frames[app -> current_frame].grid[y][x] = app -> color_index;
+					app -> project.frames[app -> current_frame].grid[y][x] = app -> color_index;
 				else if (app -> current_tool == T_ERASE) 
-					app -> frames[app -> current_frame].grid[y][x] = -1;
+					app -> project.frames[app -> current_frame].grid[y][x] = -1;
 				else if (app -> current_tool == T_SELECT) {
-					app -> selection_grid[y][x] = app -> frames[app -> current_frame].grid[y][x] >= 0 ? 
-						app -> frames[app -> current_frame].grid[y][x] : -1;
+					app -> selection_grid[y][x] = app -> project.frames[app -> current_frame].grid[y][x] >= 0 ? 
+						app -> project.frames[app -> current_frame].grid[y][x] : -1;
 					app -> tiles_selected = true;
 				}
 			}
@@ -342,7 +362,7 @@ static void handle_move (pixel_app* app, pixel_input input) {
 				for (unsigned y = 0; y < GRID_TILE_COUNT_Y; ++y) {
 					for (unsigned x = 0; x < GRID_TILE_COUNT_X; ++x) {
 						if (app -> selection_grid[y][x] >= 0)
-							app -> frames[app -> current_frame].grid[y][x] = -1;
+							app -> project.frames[app -> current_frame].grid[y][x] = -1;
 					}
 				}
 			}
@@ -361,7 +381,7 @@ static void handle_move (pixel_app* app, pixel_input input) {
 					if (app -> selection_grid[y][x] >= 0) {
 						if (BETWEEN (y + (int)app -> move.offset.y, 0, GRID_TILE_COUNT_Y - 1) &&
 							BETWEEN (x + (int)app -> move.offset.x, 0, GRID_TILE_COUNT_X - 1)) {
-							app -> frames[app -> current_frame].grid[y + (int)app -> move.offset.y][x + (int)app -> move.offset.x] = 
+							app -> project.frames[app -> current_frame].grid[y + (int)app -> move.offset.y][x + (int)app -> move.offset.x] = 
 								app -> selection_grid[y][x];
 						}
 					}
@@ -510,13 +530,13 @@ static void draw_buttons (pixel_app* app, pixel_input input) {
 	if (draw_button (clear_rect, input, app -> icons[(int)ICO_CLEAR], app -> is_playing)) {
 		for (unsigned y = 0; y < GRID_TILE_COUNT_Y; ++y) {
 			for (unsigned x = 0; x < GRID_TILE_COUNT_X; ++x)
-				app -> frames[app -> current_frame].grid[y][x] = -1;
+				app -> project.frames[app -> current_frame].grid[y][x] = -1;
 		}
 	}
 	if (draw_button (save_rect, input, app -> icons[(int)ICO_SAVE], app -> is_playing))
 		save (app);
 	if (draw_button (load_rect, input, app -> icons[(int)ICO_LOAD], app -> is_playing))
-		io_log ("Load animation");
+		load (app);
 	if (draw_button (export_rect, input, app -> icons[(int)ICO_EXPORT], app -> is_playing))
 		io_log ("Export animation");
 }
@@ -526,10 +546,10 @@ void pixel_init (gui_window window, void* memory) {
 	app -> color_index = 0;
 
 	app -> current_frame = 0;
-	app -> frame_count = 1;
+	app -> project.frame_count = 1;
 	for (unsigned y = 0; y < GRID_TILE_COUNT_Y; ++y) {
 		for (unsigned x = 0; x < GRID_TILE_COUNT_X; ++x)
-			app -> frames[app -> current_frame].grid[y][x] = -1;
+			app -> project.frames[app -> current_frame].grid[y][x] = -1;
 	}
 
 	for (unsigned i = 0; i < ICON_COUNT; ++i) {

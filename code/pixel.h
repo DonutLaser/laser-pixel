@@ -1,7 +1,7 @@
 #if !defined (PIXEL_H)
 #define PIXEL_H
 
-#include "constants.h"
+#include "pixel_parser.h"
 
 #include "../third_party/gui_math.h"
 #include "../third_party/gui_resources.h"
@@ -25,14 +25,10 @@ struct pixel_input {
 	bool lmb_up;
 };
 
-struct frame {
-	int grid[GRID_TILE_COUNT_Y][GRID_TILE_COUNT_X];
-};
-
 struct pixel_app {
 	gui_image icons[ICON_COUNT];
 
-	frame frames[MAX_FRAME_COUNT];
+	ppp project;
 	int selection_grid[GRID_TILE_COUNT_Y][GRID_TILE_COUNT_X];
 	int clipboard_grid[GRID_TILE_COUNT_Y][GRID_TILE_COUNT_X];
 
@@ -42,7 +38,6 @@ struct pixel_app {
 	tool current_tool;
 
 	int current_frame;
-	unsigned frame_count;
 
 	bool tiles_selected;
 	bool paste_executed;
