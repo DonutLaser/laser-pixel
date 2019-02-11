@@ -10,7 +10,7 @@
 // Forward declarations
 struct gui_window;
 
-enum tool { T_DRAW, T_ERASE, T_SELECT, T_MOVE, T_COPY, T_PASTE }; 
+enum tool { T_DRAW, T_ERASE, T_SELECT, T_MOVE }; 
 enum playback_speed { PS_FULL, PS_HALF };
 
 struct mouse_drag {

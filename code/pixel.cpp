@@ -13,6 +13,26 @@ enum Icon { ICO_FIRST_FRAME, ICO_PREV_FRAME, ICO_PLAY, ICO_PAUSE, ICO_NEXT_FRAME
 
 enum change_frame_type { CF_FIRST, CF_PREV, CF_PLAY, CF_NEXT, CF_LAST };
 
+static const char* tool_to_string (tool t) {
+	switch (t) {
+		case T_DRAW:
+			return "Draw";
+		case T_ERASE:
+			return "Erase";
+		case T_SELECT:
+			return "Select";
+		case T_MOVE:
+			return "Move";
+	}
+
+	return NULL;
+}
+
+static void update_title (pixel_app* app, gui_window window) {
+	wnd_set_title (window, "Pixel Playground - %s tool - Frame: %d/%d", 
+				   tool_to_string (app -> current_tool), app -> current_frame + 1, app -> project.frame_count);
+}
+
 static void clear_selection (pixel_app* app) {
 	if (!app -> tiles_selected)
 		return;
@@ -80,11 +100,10 @@ static void set_tool (pixel_app* app, tool t, const char* text, gui_window windo
 		app -> paste_executed = false;
 	}
 
-
-	wnd_set_title (window, "Pixel Playground | %s |", text);
+	update_title (app, window);
 }
 
-static void change_frame (pixel_app* app, change_frame_type type) {
+static void change_frame (pixel_app* app, change_frame_type type, gui_window window) {
 	switch (type) {
 		case CF_NEXT: {
 			++app -> current_frame;
@@ -125,6 +144,8 @@ static void change_frame (pixel_app* app, change_frame_type type) {
 	}
 
 	app -> current_frame = CLAMP (app -> current_frame, 0, MAX_FRAME_COUNT - 1);
+
+	update_title (app, window);
 }
 
 static void change_speed (pixel_app* app) {
@@ -256,7 +277,7 @@ static bool draw_selectable_rect (rect r, v4 color, v2 mouse_pos, bool mb, bool 
 	return false;
 }
 
-static void draw_controls (pixel_app* app, pixel_input input) {
+static void draw_controls (pixel_app* app, pixel_input input, gui_window window) {
 	v2 start_pos = make_v2 (CONTROLS_POSITION);
 
 	unsigned widths[] = {
@@ -285,14 +306,14 @@ static void draw_controls (pixel_app* app, pixel_input input) {
 		bool disabled = i != 2 && app -> is_playing;
 
 		if (draw_button (r, input, app -> icons[icon], disabled))
-			change_frame (app, (change_frame_type)i);
+			change_frame (app, (change_frame_type)i, window);
 	}
 }
 
-static void draw_frame (pixel_app* app, pixel_input input) {
+static void draw_frame (pixel_app* app, pixel_input input, gui_window window) {
 	if (app -> is_playing) {
 		if (timer_get_value (app -> play_timer) >= app -> play_timer.target_miliseconds) {
-			change_frame (app, CF_NEXT);
+			change_frame (app, CF_NEXT, window);
 			timer_reset (&app -> play_timer);
 		}
 	}
@@ -575,7 +596,7 @@ void pixel_init (gui_window window, void* memory) {
 void pixel_update (void* memory, pixel_input input, gui_window window) {
 	pixel_app* app = (pixel_app*)memory;
 
-	draw_controls (app, input);
+	draw_controls (app, input, window);
 
 	rect clip_rect = make_rect (make_v2 (GRID_POSITION),
 								GRID_TILE_SIZE * GRID_TILE_COUNT_X,
@@ -584,7 +605,7 @@ void pixel_update (void* memory, pixel_input input, gui_window window) {
 	clip_rect.y += GRID_OUTLINE;
 	gl_begin_clip_rect (wnd_get_client_size (window), clip_rect);
 
-	draw_frame (app, input);
+	draw_frame (app, input, window);
 	draw_selected_pixels (app, input);
 
 	gl_end_clip_rect ();
