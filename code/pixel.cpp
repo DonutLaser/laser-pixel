@@ -14,6 +14,8 @@ enum Icon { ICO_FIRST_FRAME, ICO_PREV_FRAME, ICO_PLAY, ICO_PAUSE, ICO_NEXT_FRAME
 			ICO_DRAW, ICO_ERASE, ICO_SELECT, ICO_MOVE, ICO_COPY, ICO_PASTE, ICO_CLEAR,
 			ICO_SAVE, ICO_LOAD, ICO_EXPORT, ICO_FULL_SPEED, ICO_HALF_SPEED };
 
+enum cursor { CUR_DRAW, CUR_ERASE, CUR_SELECT, CUR_MOVE };
+
 enum change_frame_type { CF_FIRST, CF_PREV, CF_PLAY, CF_NEXT, CF_LAST };
 
 static const char* tool_to_string (tool t) {
@@ -532,7 +534,7 @@ static void draw_colors (pixel_app* app, pixel_input input) {
 	}
 }
 
-static void draw_tools (pixel_app* app, pixel_input input, gui_window window) {
+static void draw_tools (pixel_app* app, pixel_input input, gui_window* window) {
 	v2 start_pos = make_v2 (TOOLS_POSITION);
 
 	unsigned widths[] = { LARGE_BUTTON_WIDTH, SPEED_WIDTH };
@@ -548,14 +550,22 @@ static void draw_tools (pixel_app* app, pixel_input input, gui_window window) {
 		}
 	}
 
-	if (draw_button (rects[0], input, app -> icons[(int)ICO_DRAW], app -> is_playing))
-		set_tool (app, T_DRAW, "Draw Tool", window);
-	if (draw_button (rects[1], input, app -> icons[(int)ICO_ERASE], app -> is_playing))
-		set_tool (app, T_ERASE, "Erase Tool", window);
-	if (draw_button (rects[2], input, app -> icons[(int)ICO_SELECT], app -> is_playing))
-		set_tool (app, T_SELECT, "Select Tool", window);
-	if (draw_button (rects[3], input, app -> icons[(int)ICO_MOVE], app -> is_playing))
-		set_tool (app, T_MOVE, "Move Tool", window);
+	if (draw_button (rects[0], input, app -> icons[(int)ICO_DRAW], app -> is_playing)) {
+		wnd_set_cursor (window, app -> cursors[CUR_DRAW]);
+		set_tool (app, T_DRAW, "Draw Tool", *window);
+	}
+	if (draw_button (rects[1], input, app -> icons[(int)ICO_ERASE], app -> is_playing)) {
+		wnd_set_cursor (window, app -> cursors[CUR_ERASE]);
+		set_tool (app, T_ERASE, "Erase Tool", *window);
+	}
+	if (draw_button (rects[2], input, app -> icons[(int)ICO_SELECT], app -> is_playing)) {
+		wnd_set_cursor (window, app -> cursors[CUR_SELECT]);
+		set_tool (app, T_SELECT, "Select Tool", *window);
+	}
+	if (draw_button (rects[3], input, app -> icons[(int)ICO_MOVE], app -> is_playing)) {
+		wnd_set_cursor (window, app -> cursors[CUR_MOVE]);
+		set_tool (app, T_MOVE, "Move Tool", *window);
+	}
 	if (draw_button (rects[4], input, app -> icons[(int)ICO_COPY], app -> is_playing)) {
 		copy_to_clipboard (app);
 	}
@@ -594,7 +604,7 @@ static void draw_buttons (pixel_app* app, pixel_input input) {
 		export_to_images (app);
 }
 
-void pixel_init (gui_window window, void* memory) {
+void pixel_init (gui_window* window, void* memory) {
 	pixel_app* app = (pixel_app*)memory;
 	app -> color_index = 0;
 
@@ -610,7 +620,7 @@ void pixel_init (gui_window window, void* memory) {
 		gl_load_image (&app -> icons[(Icon)i]);
 	}
 
-	set_tool (app, T_DRAW, "Draw Tool", window);
+	set_tool (app, T_DRAW, "Draw Tool", *window);
 
 	app -> move.in_progress = false;
 	app -> move.offset = make_v2 (0, 0);
@@ -622,22 +632,25 @@ void pixel_init (gui_window window, void* memory) {
 	app -> play_timer.target_miliseconds = 1000 / FRAMES_PER_SECOND;
 	app -> speed = PS_FULL;
 
-	gl_init (window);
+	gl_init (*window);
+
+	for (unsigned i = 0; i < CURSOR_COUNT; ++i)
+		app -> cursors[i] = wnd_generate_new_cursor (cursors[i]);
 }
 
-void pixel_update (void* memory, pixel_input input, gui_window window) {
+void pixel_update (void* memory, pixel_input input, gui_window* window) {
 	pixel_app* app = (pixel_app*)memory;
 
-	draw_controls (app, input, window);
+	draw_controls (app, input, *window);
 
 	rect clip_rect = make_rect (make_v2 (GRID_POSITION),
 								GRID_TILE_SIZE * GRID_TILE_COUNT_X,
 								GRID_TILE_SIZE * GRID_TILE_COUNT_Y);
 	clip_rect.x += GRID_OUTLINE;
 	clip_rect.y += GRID_OUTLINE;
-	gl_begin_clip_rect (wnd_get_client_size (window), clip_rect);
+	gl_begin_clip_rect (wnd_get_client_size (*window), clip_rect);
 
-	draw_frame (app, input, window);
+	draw_frame (app, input, *window);
 	draw_selected_pixels (app, input);
 
 	gl_end_clip_rect ();

@@ -111,6 +111,8 @@
 #define M_RIGHT		0x02
 #define M_MIDDLE 	0X03
 
+typedef HCURSOR cursor_id;
+
 enum wnd_style { S_DEFAULT, S_FIXEDSIZE, S_NOBUTTONS, S_COUNT };
 enum scroll_direction { SD_UP, SD_DOWN, SD_NONE };
 
@@ -137,6 +139,7 @@ struct gui_window {
 	HWND handle;
 
 	v4 bg_color;
+	cursor_id cursor;
 
 	gui_input input;
 
@@ -155,6 +158,9 @@ void wnd_set_style (gui_window window, wnd_style style);
 void wnd_set_title (gui_window window, const char* title, ...);
 v2 wnd_get_size (gui_window window);
 v2 wnd_get_client_size (gui_window window); 
+
+cursor_id wnd_generate_new_cursor (const char* path_to_cursor);
+void wnd_set_cursor (gui_window* window, cursor_id id);
 
 bool input_is_key_down (gui_window window, unsigned code);
 bool input_is_key_pressed (gui_window window, unsigned code);

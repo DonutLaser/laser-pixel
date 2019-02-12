@@ -138,6 +138,10 @@ static LRESULT CALLBACK window_proc (HWND window, UINT msg, WPARAM w_param, LPAR
 
 				break;
 			}
+			case WM_SETCURSOR: {
+				SetCursor (wnd -> cursor);
+				break;
+			}
 		}
 	}
 		
@@ -179,7 +183,8 @@ gui_window wnd_create (const char* title, unsigned width, unsigned height, bool 
 		SetWindowPos (result.handle, 0, 0, 0, (unsigned)actual_size.x, (unsigned)actual_size.y, 0);
 		
 		HCURSOR default_cursor = LoadCursor (NULL, IDC_ARROW);
-		SetCursor (default_cursor);
+		result.cursor = default_cursor;
+		SetCursor (result.cursor);
 
 		if (result.handle) {
 			if (!initialize_opengl (result.handle, make_v2 (width, height)))
@@ -362,6 +367,16 @@ v2 wnd_get_client_size (gui_window window) {
 	GetClientRect (window.handle, &rect);
 
 	return make_v2 (rect.right, rect.bottom);
+}
+
+cursor_id wnd_generate_new_cursor (const char* path_to_cursor) {
+	return LoadCursorFromFile (path_to_cursor);
+}
+
+void wnd_set_cursor (gui_window* window, cursor_id id) {
+	cursor_id actual_cursor = (id == NULL) ? LoadCursor (NULL, IDC_ARROW) : id;
+	window -> cursor = actual_cursor;
+	SetCursor (actual_cursor);
 }
 
 bool input_is_key_down (gui_window window, unsigned code) {

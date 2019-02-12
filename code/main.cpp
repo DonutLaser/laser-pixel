@@ -19,7 +19,7 @@ GUI_MAIN {
 
 	void* memory = malloc (sizeof (char) * 1024 * 1024 * 10); // 10 MB
 
-	pixel_init (window, memory);
+	pixel_init (&window, memory);
 
 	pixel_input input;
 	while (wnd_update (&window)) {
@@ -27,7 +27,7 @@ GUI_MAIN {
 		input.lmb_down = input_is_mb_pressed (window, M_LEFT);
 		input.lmb_up = input_is_mb_up (window, M_LEFT);
 
-		pixel_update (memory, input, window);
+		pixel_update (memory, input, &window);
 
 		wnd_swap_buffers (window);
 	}

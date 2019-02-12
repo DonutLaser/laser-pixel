@@ -112,6 +112,14 @@ static const char* icons[ICON_COUNT] = {
 	"W://pixel//data//images//half_speed.png"
 };
 
+#define CURSOR_COUNT				4
+static const char* cursors[CURSOR_COUNT] = { 
+	"W://pixel//data//cursors//draw_cursor.cur",
+	"W://pixel//data//cursors//erase_cursor.cur",
+	"W://pixel//data//cursors//select_cursor.cur",
+	"W://pixel//data//cursors//move_cursor.cur"
+};
+
 #define MAX_FRAME_COUNT				256	
 
 #define FRAMES_PER_SECOND			6

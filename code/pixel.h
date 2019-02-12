@@ -3,12 +3,10 @@
 
 #include "pixel_parser.h"
 
+#include "../third_party/gui_window.h"
 #include "../third_party/gui_math.h"
 #include "../third_party/gui_resources.h"
 #include "../third_party/gui_time.h"
-
-// Forward declarations
-struct gui_window;
 
 enum tool { T_DRAW, T_ERASE, T_SELECT, T_MOVE }; 
 enum playback_speed { PS_FULL, PS_HALF };
@@ -27,6 +25,7 @@ struct pixel_input {
 
 struct pixel_app {
 	gui_image icons[ICON_COUNT];
+	cursor_id cursors[CURSOR_COUNT];
 
 	ppp project;
 	int selection_grid[GRID_TILE_COUNT_Y][GRID_TILE_COUNT_X];
@@ -47,7 +46,7 @@ struct pixel_app {
 	playback_speed speed;
 };
 
-void pixel_init (gui_window window, void* memory);
-void pixel_update (void* memory, pixel_input input, gui_window window);
+void pixel_init (gui_window* window, void* memory);
+void pixel_update (void* memory, pixel_input input, gui_window* window);
 
 #endif
