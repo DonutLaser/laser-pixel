@@ -39,8 +39,6 @@ union v4 {
 		float top, right, bottom, left; // Margin
 	};
 	float f[4];
-
-
 };
 
 struct m4 {

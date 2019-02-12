@@ -6,6 +6,9 @@
 #include "../third_party/gui_io.h"
 #include "../third_party/gui_window.h"
 #include "../third_party/gui_string_buffer.h"
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#define STBI_MSC_SECURE_CRT
+#include "../third_party/stb_image_write.h"
 
 enum Icon { ICO_FIRST_FRAME, ICO_PREV_FRAME, ICO_PLAY, ICO_PAUSE, ICO_NEXT_FRAME, ICO_LAST_FRAME,
 			ICO_DRAW, ICO_ERASE, ICO_SELECT, ICO_MOVE, ICO_COPY, ICO_PASTE, ICO_CLEAR,
@@ -201,9 +204,10 @@ static void save (pixel_app* app) {
 		free (full_text);
 
 		io_close (&f);
+
+		free (path);
 	}
 
-	free (path);
 }
 
 static void load (pixel_app* app) {
@@ -215,9 +219,37 @@ static void load (pixel_app* app) {
 	 		app -> project = parse_ppp (f.contents);
 
 	 	io_close (&f);
-	 }
 
-	 free (path);
+		free (path);
+	 }
+}
+
+static void export_to_images (pixel_app* app) {
+	char* path = NULL;
+	if (io_show_select_folder_dialog ("Select the folder to save images to", &path)) {
+		for (unsigned i = 0; i < app -> project.frame_count; ++i) {
+			char data[GRID_TILE_COUNT_Y * 4 * 4 * GRID_TILE_COUNT_X * 4 * 4];
+			unsigned index = 0;
+			for (unsigned y = 0; y < GRID_TILE_COUNT_Y * 4; ++y) {
+				for (unsigned x = 0; x < GRID_TILE_COUNT_X; ++x) {
+					int color = app -> project.frames[i].grid[y / 4][x];
+					v4 color_value = color < 0 ? make_color (0, 0, 0, 0) : colors[color];
+					for (unsigned c = 0; c < 4 * 4; ++c) { 
+						data[index] = (char)(color_value.f[c % 4] * 255.0f);
+						++index;
+					}
+				}
+			}
+
+			char* file_name = str_format ("\\Frame%d.png", i);
+			char* full_path = str_concatenate (path, file_name);
+			stbi_write_png (full_path, GRID_TILE_COUNT_Y * 4, GRID_TILE_COUNT_X * 4, 4, (void*)data, GRID_TILE_COUNT_Y * 4 * 4);
+			free (file_name);
+			free (full_path);
+		}
+
+		free (path);
+	}
 }
 
 static bool draw_button (rect r, pixel_input input, gui_image icon, bool disabled) {
@@ -559,7 +591,7 @@ static void draw_buttons (pixel_app* app, pixel_input input) {
 	if (draw_button (load_rect, input, app -> icons[(int)ICO_LOAD], app -> is_playing))
 		load (app);
 	if (draw_button (export_rect, input, app -> icons[(int)ICO_EXPORT], app -> is_playing))
-		io_log ("Export animation");
+		export_to_images (app);
 }
 
 void pixel_init (gui_window window, void* memory) {

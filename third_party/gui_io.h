@@ -28,6 +28,7 @@ bool io_was_file_changed (const char* path);
 
 bool io_show_save_file_dialog (const char* title, const char* file_type, const char* extension, char** result);
 bool io_show_load_file_dialog (const char* title, const char* file_type, const char* extension, char** result);
+bool io_show_select_folder_dialog (const char* title, char** result);
 
 void io_log (const char* text, ...);
 void io_log_warning (const char* text, ...);

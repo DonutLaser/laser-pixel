@@ -2,6 +2,7 @@
 
 #include "gui_window.h"
 #include <stdio.h>
+#include <Shlobj.h>
 
 #include "gui_string_buffer.h"
 
@@ -218,6 +219,30 @@ bool io_show_load_file_dialog (const char* title, const char* file_type, const c
 	}
 
 	free (filter);
+	return res;
+}
+
+bool io_show_select_folder_dialog (const char* title, char** result) {
+	char display_name[PATH_MAX];
+
+	BROWSEINFO info = { };
+	info.pszDisplayName = display_name;
+	info.lpszTitle = title;
+	info.ulFlags = BIF_USENEWUI;
+
+	bool res = false;
+	LPITEMIDLIST folder = SHBrowseForFolder (&info);
+	if (folder) {
+		SHGetPathFromIDList (folder, display_name);
+
+		unsigned length = str_length (display_name);
+		*result = (char*)malloc (sizeof (char) * (length + 1));
+		str_copy (display_name, *result, 0, length);
+		(*result)[length] = '\0';
+
+		res = true;
+	}
+
 	return res;
 }
 
