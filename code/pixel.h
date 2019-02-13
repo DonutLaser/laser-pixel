@@ -26,6 +26,7 @@ struct pixel_input {
 struct pixel_app {
 	gui_image icons[ICON_COUNT];
 	cursor_id cursors[CURSOR_COUNT];
+	bool custom_cursor;
 
 	ppp project;
 	int selection_grid[GRID_TILE_COUNT_Y][GRID_TILE_COUNT_X];

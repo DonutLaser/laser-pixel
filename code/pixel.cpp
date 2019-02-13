@@ -550,25 +550,16 @@ static void draw_tools (pixel_app* app, pixel_input input, gui_window* window) {
 		}
 	}
 
-	if (draw_button (rects[0], input, app -> icons[(int)ICO_DRAW], app -> is_playing)) {
-		wnd_set_cursor (window, app -> cursors[CUR_DRAW]);
+	if (draw_button (rects[0], input, app -> icons[(int)ICO_DRAW], app -> is_playing))
 		set_tool (app, T_DRAW, "Draw Tool", *window);
-	}
-	if (draw_button (rects[1], input, app -> icons[(int)ICO_ERASE], app -> is_playing)) {
-		wnd_set_cursor (window, app -> cursors[CUR_ERASE]);
+	if (draw_button (rects[1], input, app -> icons[(int)ICO_ERASE], app -> is_playing))
 		set_tool (app, T_ERASE, "Erase Tool", *window);
-	}
-	if (draw_button (rects[2], input, app -> icons[(int)ICO_SELECT], app -> is_playing)) {
-		wnd_set_cursor (window, app -> cursors[CUR_SELECT]);
+	if (draw_button (rects[2], input, app -> icons[(int)ICO_SELECT], app -> is_playing))
 		set_tool (app, T_SELECT, "Select Tool", *window);
-	}
-	if (draw_button (rects[3], input, app -> icons[(int)ICO_MOVE], app -> is_playing)) {
-		wnd_set_cursor (window, app -> cursors[CUR_MOVE]);
+	if (draw_button (rects[3], input, app -> icons[(int)ICO_MOVE], app -> is_playing))
 		set_tool (app, T_MOVE, "Move Tool", *window);
-	}
-	if (draw_button (rects[4], input, app -> icons[(int)ICO_COPY], app -> is_playing)) {
+	if (draw_button (rects[4], input, app -> icons[(int)ICO_COPY], app -> is_playing))
 		copy_to_clipboard (app);
-	}
 	if (draw_button (rects[5], input, app -> icons[(int)ICO_PASTE], app -> is_playing))
 		paste (app);
 	if (draw_button (rects[6], input, app -> icons[app -> speed == PS_FULL ? (int)ICO_FULL_SPEED : (int)ICO_HALF_SPEED], app -> is_playing))
@@ -649,6 +640,33 @@ void pixel_update (void* memory, pixel_input input, gui_window* window) {
 	clip_rect.x += GRID_OUTLINE;
 	clip_rect.y += GRID_OUTLINE;
 	gl_begin_clip_rect (wnd_get_client_size (*window), clip_rect);
+
+	if (is_point_in_rect (clip_rect, input.mouse_pos) && !app -> custom_cursor) {
+		switch (app -> current_tool) {
+			case T_DRAW: {
+				wnd_set_cursor (window, app -> cursors[CUR_DRAW]);
+				break;
+			}
+			case T_ERASE: {
+				wnd_set_cursor (window, app -> cursors[CUR_ERASE]);
+				break;
+			}
+			case T_SELECT: {
+				wnd_set_cursor (window, app -> cursors[CUR_SELECT]);
+				break;
+			}
+			case T_MOVE: {
+				wnd_set_cursor (window, app -> cursors[CUR_MOVE]);
+				break;
+			}
+		}
+
+		app -> custom_cursor = true;
+	}
+	else if (!is_point_in_rect (clip_rect, input.mouse_pos) && app -> custom_cursor) {
+		wnd_set_cursor (window, NULL);
+		app -> custom_cursor = false;
+	}
 
 	draw_frame (app, input, *window);
 	draw_selected_pixels (app, input);
