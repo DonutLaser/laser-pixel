@@ -122,6 +122,6 @@ static const char* cursors[CURSOR_COUNT] = {
 
 #define MAX_FRAME_COUNT				256	
 
-#define FRAMES_PER_SECOND			6
+#define FRAMES_PER_SECOND			16
 
 #endif
