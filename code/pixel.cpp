@@ -116,6 +116,9 @@ static void set_tool (pixel_app* app, tool t, const char* text, gui_window windo
 static void change_frame (pixel_app* app, change_frame_type type, gui_window window) {
 	switch (type) {
 		case CF_NEXT: {
+			if (app -> project.frame_count == MAX_FRAME_COUNT)
+				break;
+
 			++app -> current_frame;
 			if (!app -> is_playing) {
 				if (app -> current_frame == app -> project.frame_count) {
