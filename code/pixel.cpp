@@ -486,7 +486,7 @@ static void select_area (pixel_app* app, unsigned x, unsigned y) {
 			if (app -> project.frames[app -> current_frame].grid[new_y][new_x] == color_to_select &&
 				app -> selection_grid[new_y][new_x] < 0) {
 				app -> selection_grid[new_y][new_x] = color_to_select;
-				coords[current_coord++] = { new_x, new_y };
+				coords[current_coord++] = { new_x - 1, new_y };
 				continue;
 			}
 		}
@@ -497,7 +497,7 @@ static void select_area (pixel_app* app, unsigned x, unsigned y) {
 			if (app -> project.frames[app -> current_frame].grid[new_y][new_x] == color_to_select &&
 				app -> selection_grid[new_y][new_x] < 0) {
 				app -> selection_grid[new_y][new_x] = color_to_select;
-		 		coords[current_coord++] = { new_x, new_y };
+		 		coords[current_coord++] = { new_x, new_y - 1 };
 		 		continue;
 		 	}
 		}
@@ -508,7 +508,7 @@ static void select_area (pixel_app* app, unsigned x, unsigned y) {
 		 	if (app -> project.frames[app -> current_frame].grid[new_y][new_x] == color_to_select &&
 		 		app -> selection_grid[new_y][new_x] < 0) {
 				app -> selection_grid[new_y][new_x] = color_to_select;
-		 		coords[current_coord++] = { new_x, new_y };
+		 		coords[current_coord++] = { new_x + 1, new_y };
 		 		continue;
 		 	}
 		}
@@ -519,7 +519,7 @@ static void select_area (pixel_app* app, unsigned x, unsigned y) {
 		 	if (app -> project.frames[app -> current_frame].grid[new_y][new_x] == color_to_select &&
 		 		app -> selection_grid[new_y][new_x] < 0) {
 				app -> selection_grid[new_y][new_x] = color_to_select;
-		 		coords[current_coord++] = { new_x, new_y };
+		 		coords[current_coord++] = { new_x, new_y + 1 };
 		 		continue;
 		 	}
 		}
