@@ -437,7 +437,7 @@ static void fill_color (pixel_app* app, int x, int y) {
 	}
 }
 
-static void fill_line (pixel_app* app, unsigned x, unsigned y) {
+static void fill_line (pixel_app* app, int x, int y) {
 	int x_diff = x - app -> last_x; 
 	int y_diff = y - app -> last_y;
 
@@ -456,6 +456,74 @@ static void fill_line (pixel_app* app, unsigned x, unsigned y) {
 			app -> last_y += dir;
 			app -> project.frames[app -> current_frame].grid[app -> last_y][app -> last_x] = app -> color_index;
 		}
+	}
+}
+
+static void select_area (pixel_app* app, unsigned x, unsigned y) {
+	int color_to_select = app -> project.frames[app -> current_frame].grid[y][x];
+	app -> selection_grid[y][x] = color_to_select;
+
+	struct coordinates {
+		int x;
+		int y;
+	};
+
+	coordinates coords[GRID_TILE_COUNT_X * GRID_TILE_COUNT_Y];
+	int current_coord = 0;
+
+	int new_x = x;
+	int new_y = y;
+	while (current_coord >= 0) {
+		new_x += 1;
+		if (new_x < GRID_TILE_COUNT_X) {
+			if (app -> project.frames[app -> current_frame].grid[new_y][new_x] == color_to_select &&
+				app -> selection_grid[new_y][new_x] < 0) {
+				app -> selection_grid[new_y][new_x] = color_to_select;
+				coords[current_coord++] = { new_x, new_y };
+				continue;
+			}
+		}
+
+		new_x -= 1;
+		new_y += 1;
+		if (new_y < GRID_TILE_COUNT_Y) {
+			if (app -> project.frames[app -> current_frame].grid[new_y][new_x] == color_to_select &&
+				app -> selection_grid[new_y][new_x] < 0) {
+				app -> selection_grid[new_y][new_x] = color_to_select;
+		 		coords[current_coord++] = { new_x, new_y };
+		 		continue;
+		 	}
+		}
+
+		new_x -= 1;
+		new_y -= 1;
+		if (new_x >= 0) {
+		 	if (app -> project.frames[app -> current_frame].grid[new_y][new_x] == color_to_select &&
+		 		app -> selection_grid[new_y][new_x] < 0) {
+				app -> selection_grid[new_y][new_x] = color_to_select;
+		 		coords[current_coord++] = { new_x, new_y };
+		 		continue;
+		 	}
+		}
+
+		new_x += 1;
+		new_y -= 1;
+		if (new_y >= 0) {
+		 	if (app -> project.frames[app -> current_frame].grid[new_y][new_x] == color_to_select &&
+		 		app -> selection_grid[new_y][new_x] < 0) {
+				app -> selection_grid[new_y][new_x] = color_to_select;
+		 		coords[current_coord++] = { new_x, new_y };
+		 		continue;
+		 	}
+		}
+
+		if (current_coord != 0) {
+			coordinates last_coords = coords[--current_coord];
+			new_x = last_coords.x;
+			new_y = last_coords.y;
+		}
+		else
+			break;
 	}
 }
 
@@ -594,8 +662,13 @@ static void draw_frame (pixel_app* app, pixel_input input, gui_window window) {
 				else if (app -> current_tool == T_ERASE) 
 					app -> project.frames[app -> current_frame].grid[y][x] = -1;
 				else if (app -> current_tool == T_SELECT) {
-					app -> selection_grid[y][x] = app -> project.frames[app -> current_frame].grid[y][x] >= 0 ? 
-						app -> project.frames[app -> current_frame].grid[y][x] : -1;
+					if (input.ctrl_pressed)
+						select_area (app, x, y);
+					else {
+						app -> selection_grid[y][x] = app -> project.frames[app -> current_frame].grid[y][x] >= 0 ? 
+							app -> project.frames[app -> current_frame].grid[y][x] : -1;
+					}
+					
 					app -> tiles_selected = true;
 				}
 			}
