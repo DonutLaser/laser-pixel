@@ -159,6 +159,7 @@ static void change_frame (pixel_app* app, change_frame_type type, gui_window win
 	}
 
 	app -> current_frame = CLAMP (app -> current_frame, 0, MAX_FRAME_COUNT - 1);
+	clear_selection (app);
 
 	update_title (app, window);
 }
