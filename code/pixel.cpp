@@ -296,18 +296,20 @@ static void draw_selected_rect (rect r, v4 color, selection_neighbor_info info) 
 	selected_rect.width -= SELECTION_INDICATOR_OUTLINE * 2;
 	selected_rect.height -= SELECTION_INDICATOR_OUTLINE * 2;
 
-	if (info.sides[0]) {
+	enum sides { S_TOP, S_RIGHT, S_BOTTOM, S_LEFT };
+
+	if (info.sides[S_TOP]) {
 		selected_rect.y -= SELECTION_INDICATOR_OUTLINE;
 		selected_rect.height += SELECTION_INDICATOR_OUTLINE;
 	}
 
-	if (info.sides[1])
+	if (info.sides[S_RIGHT])
 		selected_rect.width += SELECTION_INDICATOR_OUTLINE;
 
-	if (info.sides[2])
+	if (info.sides[S_BOTTOM])
 		selected_rect.height += SELECTION_INDICATOR_OUTLINE;
 
-	if (info.sides[3]) {
+	if (info.sides[S_LEFT]) {
 		selected_rect.x -= SELECTION_INDICATOR_OUTLINE;
 		selected_rect.width += SELECTION_INDICATOR_OUTLINE;
 	}
@@ -320,25 +322,27 @@ static void draw_selected_rect (rect r, v4 color, selection_neighbor_info info) 
 	rect corner = { };
 	corner.width = corner.height = SELECTION_INDICATOR_OUTLINE;
 
-	if (info.sides[0] && info.sides[3] && !info.corners[0]) {
+	enum corners { C_TOP_LEFT, C_TOP_RIGHT, C_BOTTOM_LEFT, C_BOTTOM_RIGHT };
+
+	if (info.sides[S_TOP] && info.sides[S_LEFT] && !info.corners[C_TOP_LEFT]) {
 		corner.x = r.x;
 		corner.y = r.y;
 		gl_draw_rect (corner, outline_color, false);
 	}
 
-	if (info.sides[0] && info.sides[1] && !info.corners[1]) {
+	if (info.sides[S_TOP] && info.sides[S_RIGHT] && !info.corners[C_TOP_RIGHT]) {
 		corner.x = r.x + (r.width - SELECTION_INDICATOR_OUTLINE); 
 		corner.y = r.y;
 		gl_draw_rect (corner, outline_color, false);
 	}
 
-	if (info.sides[2] && info.sides[3] && !info.corners[2]) {
+	if (info.sides[S_BOTTOM] && info.sides[S_LEFT] && !info.corners[C_BOTTOM_LEFT]) {
 		corner.x = r.x;
 		corner.y = r.y + (r.height - SELECTION_INDICATOR_OUTLINE);
 		gl_draw_rect (corner, outline_color, false);
 	}
 
-	if (info.sides[1] && info.sides[2] && !info.corners[3]) {
+	if (info.sides[S_RIGHT] && info.sides[S_BOTTOM] && !info.corners[C_BOTTOM_RIGHT]) {
 		corner.x = r.x + (r.width - SELECTION_INDICATOR_OUTLINE);
 		corner.y = r.y + (r.height - SELECTION_INDICATOR_OUTLINE);
 		gl_draw_rect (corner, outline_color, false);
