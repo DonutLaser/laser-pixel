@@ -10,7 +10,10 @@
 #define STBI_MSC_SECURE_CRT
 #include "../third_party/stb_image_write.h"
 
-
+struct selection_neighbor_info {
+	bool sides[4];
+	bool corners[4];
+};
 
 enum Icon { ICO_FIRST_FRAME, ICO_PREV_FRAME, ICO_PLAY, ICO_PAUSE, ICO_NEXT_FRAME, ICO_LAST_FRAME,
 			ICO_DRAW, ICO_ERASE, ICO_SELECT, ICO_MOVE, ICO_COPY, ICO_PASTE, ICO_CLEAR,
@@ -286,25 +289,70 @@ static bool draw_button (rect r, pixel_input input, gui_image icon, bool disable
 	return result;
 }
 
-static void draw_selected_rect (rect r, v4 color) {
+static void draw_selected_rect (rect r, v4 color, selection_neighbor_info info) {
 	rect selected_rect = r;
 	selected_rect.x += SELECTION_INDICATOR_OUTLINE;
 	selected_rect.y += SELECTION_INDICATOR_OUTLINE;
 	selected_rect.width -= SELECTION_INDICATOR_OUTLINE * 2;
 	selected_rect.height -= SELECTION_INDICATOR_OUTLINE * 2;
 
-	gl_draw_rect (r, make_color (DEFAULT_BUTTON_ICON_COLOR, 255), false);
+	if (info.sides[0]) {
+		selected_rect.y -= SELECTION_INDICATOR_OUTLINE;
+		selected_rect.height += SELECTION_INDICATOR_OUTLINE;
+	}
+
+	if (info.sides[1])
+		selected_rect.width += SELECTION_INDICATOR_OUTLINE;
+
+	if (info.sides[2])
+		selected_rect.height += SELECTION_INDICATOR_OUTLINE;
+
+	if (info.sides[3]) {
+		selected_rect.x -= SELECTION_INDICATOR_OUTLINE;
+		selected_rect.width += SELECTION_INDICATOR_OUTLINE;
+	}
+
+	v4 outline_color = make_color (DEFAULT_BUTTON_ICON_COLOR, 255);
+
+	gl_draw_rect (r, outline_color, false);
 	gl_draw_rect (selected_rect, color, false);
+
+	rect corner = { };
+	corner.width = corner.height = SELECTION_INDICATOR_OUTLINE;
+
+	if (info.sides[0] && info.sides[3] && !info.corners[0]) {
+		corner.x = r.x;
+		corner.y = r.y;
+		gl_draw_rect (corner, outline_color, false);
+	}
+
+	if (info.sides[0] && info.sides[1] && !info.corners[1]) {
+		corner.x = r.x + (r.width - SELECTION_INDICATOR_OUTLINE); 
+		corner.y = r.y;
+		gl_draw_rect (corner, outline_color, false);
+	}
+
+	if (info.sides[2] && info.sides[3] && !info.corners[2]) {
+		corner.x = r.x;
+		corner.y = r.y + (r.height - SELECTION_INDICATOR_OUTLINE);
+		gl_draw_rect (corner, outline_color, false);
+	}
+
+	if (info.sides[1] && info.sides[2] && !info.corners[3]) {
+		corner.x = r.x + (r.width - SELECTION_INDICATOR_OUTLINE);
+		corner.y = r.y + (r.height - SELECTION_INDICATOR_OUTLINE);
+		gl_draw_rect (corner, outline_color, false);
+	}
 }
 
-static bool draw_selectable_rect (rect r, v4 color, v2 mouse_pos, bool mb, bool is_selected, bool disabled) {
+static bool draw_selectable_rect (rect r, v4 color, v2 mouse_pos, bool mb, bool is_selected, selection_neighbor_info info, bool disabled) {
 	if (!disabled) {
 		if (is_selected) {
-			draw_selected_rect (r, color);
+			draw_selected_rect (r, color, info);
 			return false;
 		}
 		else if (is_point_in_rect (r, mouse_pos)) {
-			draw_selected_rect (r, color);
+			draw_selected_rect (r, color, info);
 			return mb;
 		}
 	}
@@ -407,6 +455,47 @@ static void fill_line (pixel_app* app, unsigned x, unsigned y) {
 	}
 }
 
+static selection_neighbor_info get_selection_info (pixel_app* app, unsigned x, unsigned y) {
+	selection_neighbor_info result = { };
+
+	int new_x = x;
+	int new_y = y;
+
+	--new_y;
+	result.sides[0] = (new_y >= 0) && (app -> selection_grid[new_y][new_x] >= 0);
+
+	++new_y;
+	++new_x;
+	result.sides[1] = (new_x < GRID_TILE_COUNT_X) && (app -> selection_grid[new_y][new_x] >= 0);
+
+	--new_x;
+	++new_y;
+	result.sides[2] = (new_y < GRID_TILE_COUNT_Y) && app -> selection_grid[new_y][new_x] >= 0;
+
+	--new_y;
+	--new_x;
+	result.sides[3] = (new_x >= 0) && app -> selection_grid[new_y][new_x] >= 0;
+
+	new_y = y;
+	new_x = x;
+
+	--new_y;
+	--new_x;
+	result.corners[0] = (new_y >= 0 && new_x >= 0) && (app -> selection_grid[new_y][new_x] >= 0);
+
+	new_x += 2;
+	result.corners[1] = (new_x < GRID_TILE_COUNT_X) && (app -> selection_grid[new_y][new_x] >= 0);
+
+	new_y += 2;
+	new_x -= 2;
+	result.corners[2] = (new_x >= 0 && new_y < GRID_TILE_COUNT_Y) && (app -> selection_grid[new_y][new_x] >= 0);
+
+	new_x += 2;
+	result.corners[3] = (new_x < GRID_TILE_COUNT_X) && (app -> selection_grid[new_y][new_x] >= 0);
+
+	return result;
+}
+
 static void draw_controls (pixel_app* app, pixel_input input, gui_window window) {
 	v2 start_pos = make_v2 (CONTROLS_POSITION);
 
@@ -483,8 +572,11 @@ static void draw_frame (pixel_app* app, pixel_input input, gui_window window) {
 				input.mouse_pos = make_v2 (-1, -1);
 
 			bool is_selected = app -> selection_grid[y][x] >= 0 && app -> current_tool != T_MOVE;
+			selection_neighbor_info selection_info = { };
+			if (is_selected)
+				selection_info = get_selection_info (app, y, x);
 
-			if (draw_selectable_rect (tile_rect, tile_color, input.mouse_pos, input.lmb_down, is_selected, app -> is_playing)) {
+			if (draw_selectable_rect (tile_rect, tile_color, input.mouse_pos, input.lmb_down, is_selected, selection_info, app -> is_playing)) {
 				if (app -> current_tool == T_DRAW) {
 					if (input.ctrl_pressed)
 						fill_color (app, x, y);
@@ -604,8 +696,10 @@ static void draw_selected_pixels (pixel_app* app, pixel_input input) {
 			tile_rect.x = start_pos.x + x * GRID_TILE_SIZE;
 			tile_rect.y = start_pos.y + y * GRID_TILE_SIZE;
 
+			selection_neighbor_info selection_info = get_selection_info (app, x, y);
+
  			if (app -> selection_grid[y][x] >= 0) 
- 				draw_selected_rect (tile_rect, tile_color);
+ 				draw_selected_rect (tile_rect, tile_color, selection_info);
 			else
 				gl_draw_rect (tile_rect, tile_color, false);
 		}
@@ -634,7 +728,7 @@ static void draw_colors (pixel_app* app, pixel_input input) {
 			tile_rect.y = start_pos.y + y * COLOR_TILE_SIZE;
 
 			if (draw_selectable_rect (tile_rect, tile_color, input.mouse_pos, input.lmb_up, 
-				app -> color_index == x + y * COLOR_TILE_COUNT_X, app -> is_playing)) {
+				app -> color_index == x + y * COLOR_TILE_COUNT_X, { }, app -> is_playing)) {
 				app -> color_index = x + y * COLOR_TILE_COUNT_X;
 			}
 		}
