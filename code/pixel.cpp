@@ -527,6 +527,28 @@ static void select_area (pixel_app* app, unsigned x, unsigned y) {
 	}
 }
 
+static void select_line (pixel_app* app, int x, int y) {
+	int x_diff = x - app -> last_x; 
+	int y_diff = y - app -> last_y;
+
+	if (ABS (x_diff) >= ABS (y_diff)) {
+		int dir = x_diff < 0 ? -1 : 1;
+
+		while (app -> last_x != x) {
+			app -> last_x += dir;
+			app -> selection_grid[app -> last_y][app -> last_x] = app -> project.frames[app -> current_frame].grid[app -> last_y][app -> last_x];
+		}
+	}
+	else {
+		int dir = y_diff < 0 ? -1 : 1;
+
+		while (app -> last_y != y) {
+			app -> last_y += dir;
+			app -> selection_grid[app -> last_y][app -> last_x] = app -> project.frames[app -> current_frame].grid[app -> last_y][app -> last_x];
+		}
+	}
+}
+
 static selection_neighbor_info get_selection_info (pixel_app* app, unsigned x, unsigned y) {
 	selection_neighbor_info result = { };
 
@@ -664,9 +686,15 @@ static void draw_frame (pixel_app* app, pixel_input input, gui_window window) {
 				else if (app -> current_tool == T_SELECT) {
 					if (input.ctrl_pressed)
 						select_area (app, x, y);
+					else if (input.shift_pressed) {
+						if (app -> last_x >= 0 || app -> last_y >= 0)
+							select_line (app, x, y);
+					}
 					else {
 						app -> selection_grid[y][x] = app -> project.frames[app -> current_frame].grid[y][x] >= 0 ? 
 							app -> project.frames[app -> current_frame].grid[y][x] : -1;
+						app -> last_x = x;
+						app -> last_y = y;
 					}
 					
 					app -> tiles_selected = true;
