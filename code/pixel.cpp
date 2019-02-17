@@ -669,7 +669,7 @@ static void draw_tools (pixel_app* app, pixel_input input, gui_window* window) {
 		copy_to_clipboard (app);
 	if (draw_button (rects[5], input, app -> icons[(int)ICO_PASTE], app -> is_playing))
 		paste (app);
-	if (draw_button (rects[6], input, app -> icons[app -> speed == PS_FULL ? (int)ICO_FULL_SPEED : (int)ICO_HALF_SPEED], app -> is_playing))
+	if (draw_button (rects[6], input, app -> icons[app -> speed == PS_FULL ? (int)ICO_FULL_SPEED : (int)ICO_HALF_SPEED], false))
 		change_speed (app);
 }
 
