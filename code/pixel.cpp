@@ -121,8 +121,10 @@ static void change_frame (pixel_app* app, change_frame_type type, gui_window win
 				if (app -> current_frame == app -> project.frame_count) {
 					++app -> project.frame_count;
 					for (unsigned y = 0; y < GRID_TILE_COUNT_X; ++y) {
-						for (unsigned x = 0; x < GRID_TILE_COUNT_X; ++x)
-							app -> project.frames[app -> current_frame].grid[y][x] = -1;
+						for (unsigned x = 0; x < GRID_TILE_COUNT_X; ++x) {
+							app -> project.frames[app -> current_frame].grid[y][x] = 
+								app -> project.frames[app -> current_frame - 1].grid[y][x];
+						}
 					}
 				}
 			}
