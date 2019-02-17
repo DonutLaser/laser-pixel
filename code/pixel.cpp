@@ -399,7 +399,7 @@ static void fill_color (pixel_app* app, int x, int y) {
 		if (new_x < GRID_TILE_COUNT_X) {
 			if (app -> project.frames[app -> current_frame].grid[new_y][new_x] == color_to_change) {
 				app -> project.frames[app -> current_frame].grid[new_y][new_x] = app -> color_index;
-				coords[current_coord++] = { new_x, new_y };
+				coords[current_coord++] = { new_x - 1, new_y };
 				continue;
 			}
 		}
@@ -409,7 +409,7 @@ static void fill_color (pixel_app* app, int x, int y) {
 		if (new_y < GRID_TILE_COUNT_Y) {
 			if (app -> project.frames[app -> current_frame].grid[new_y][new_x] == color_to_change) {
 		 		app -> project.frames[app -> current_frame].grid[new_y][new_x] = app -> color_index;
-		 		coords[current_coord++] = { new_x, new_y };
+		 		coords[current_coord++] = { new_x, new_y - 1 };
 		 		continue;
 		 	}
 		}
@@ -419,7 +419,7 @@ static void fill_color (pixel_app* app, int x, int y) {
 		if (new_x >= 0) {
 		 	if (app -> project.frames[app -> current_frame].grid[new_y][new_x] == color_to_change) {
 		 		app -> project.frames[app -> current_frame].grid[new_y][new_x] = app -> color_index;
-		 		coords[current_coord++] = { new_x, new_y };
+		 		coords[current_coord++] = { new_x + 1, new_y };
 		 		continue;
 		 	}
 		}
@@ -429,7 +429,7 @@ static void fill_color (pixel_app* app, int x, int y) {
 		if (new_y >= 0) {
 		 	if (app -> project.frames[app -> current_frame].grid[new_y][new_x] == color_to_change) {
 		 		app -> project.frames[app -> current_frame].grid[new_y][new_x] = app -> color_index;
-		 		coords[current_coord++] = { new_x, new_y };
+		 		coords[current_coord++] = { new_x, new_y + 1 };
 		 		continue;
 		 	}
 		}
