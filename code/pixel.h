@@ -38,6 +38,8 @@ struct pixel_app {
 
 	unsigned color_index;
 	tool current_tool;
+	int last_x;
+	int last_y;
 
 	int current_frame;
 

@@ -385,6 +385,28 @@ static void fill_color (pixel_app* app, int x, int y) {
 	}
 }
 
+static void fill_line (pixel_app* app, unsigned x, unsigned y) {
+	int x_diff = x - app -> last_x; 
+	int y_diff = y - app -> last_y;
+
+	if (ABS (x_diff) >= ABS (y_diff)) {
+		int dir = x_diff < 0 ? -1 : 1;
+
+		while (app -> last_x != x) {
+			app -> last_x += dir;
+			app -> project.frames[app -> current_frame].grid[app -> last_y][app -> last_x] = app -> color_index;
+		}
+	}
+	else {
+		int dir = y_diff < 0 ? -1 : 1;
+
+		while (app -> last_y != y) {
+			app -> last_y += dir;
+			app -> project.frames[app -> current_frame].grid[app -> last_y][app -> last_x] = app -> color_index;
+		}
+	}
+}
+
 static void draw_controls (pixel_app* app, pixel_input input, gui_window window) {
 	v2 start_pos = make_v2 (CONTROLS_POSITION);
 
@@ -466,8 +488,15 @@ static void draw_frame (pixel_app* app, pixel_input input, gui_window window) {
 				if (app -> current_tool == T_DRAW) {
 					if (input.ctrl_pressed)
 						fill_color (app, x, y);
-					else
+					else if (input.shift_pressed) {
+						if (app -> last_x >= 0 || app -> last_y >= 0)
+							fill_line (app, x, y);
+					}
+					else {
 						app -> project.frames[app -> current_frame].grid[y][x] = app -> color_index;
+						app -> last_x = x;
+						app -> last_y = y;
+					}
 				}
 				else if (app -> current_tool == T_ERASE) 
 					app -> project.frames[app -> current_frame].grid[y][x] = -1;
@@ -664,6 +693,8 @@ static void draw_buttons (pixel_app* app, pixel_input input) {
 			for (unsigned x = 0; x < GRID_TILE_COUNT_X; ++x)
 				app -> project.frames[app -> current_frame].grid[y][x] = -1;
 		}
+
+		app -> last_x = app -> last_y = -1;
 	}
 	if (draw_button (save_rect, input, app -> icons[(int)ICO_SAVE], app -> is_playing))
 		save (app);
@@ -690,6 +721,7 @@ void pixel_init (gui_window* window, void* memory) {
 	}
 
 	set_tool (app, T_DRAW, "Draw Tool", *window);
+	app -> last_x = app -> last_y = -1;
 
 	app -> move.in_progress = false;
 	app -> move.offset = make_v2 (0, 0);
