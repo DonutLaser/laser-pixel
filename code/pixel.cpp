@@ -222,13 +222,15 @@ static void save (pixel_app* app) {
 
 }
 
-static void load (pixel_app* app) {
+static void load (pixel_app* app, gui_window window) {
 	char* path = NULL;
 	if (io_show_load_file_dialog ("Load Pixel Playground Project", "Pixel Playground Project", "ppp", &path)) {
 	 	file f = io_open (path, OM_READ);
 
-	 	if (io_read (&f))
+	 	if (io_read (&f)) {
 	 		app -> project = parse_ppp (f.contents);
+	 		update_title (app, window);
+	 	}
 
 	 	io_close (&f);
 
@@ -874,7 +876,7 @@ static void draw_tools (pixel_app* app, pixel_input input, gui_window* window) {
 		change_speed (app);
 }
 
-static void draw_buttons (pixel_app* app, pixel_input input) {
+static void draw_buttons (pixel_app* app, pixel_input input, gui_window window) {
 	v2 start_pos = make_v2 (BUTTONS_POSITION);
 
 	rect clear_rect = make_rect (start_pos, CLEAR_BUTTON_WIDTH, SMALL_BUTTON_HEIGHT);
@@ -900,7 +902,7 @@ static void draw_buttons (pixel_app* app, pixel_input input) {
 	if (draw_button (save_rect, input, app -> icons[(int)ICO_SAVE], app -> is_playing))
 		save (app);
 	if (draw_button (load_rect, input, app -> icons[(int)ICO_LOAD], app -> is_playing))
-		load (app);
+		load (app, window);
 	if (draw_button (export_rect, input, app -> icons[(int)ICO_EXPORT], app -> is_playing))
 		export_to_images (app);
 }
@@ -986,5 +988,5 @@ void pixel_update (void* memory, pixel_input input, gui_window* window) {
 
 	draw_colors (app, input);
 	draw_tools (app, input, window);
-	draw_buttons (app, input);
+	draw_buttons (app, input, *window);
 }
