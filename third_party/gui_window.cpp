@@ -379,6 +379,11 @@ void wnd_set_cursor (gui_window* window, cursor_id id) {
 	SetCursor (actual_cursor);
 }
 
+void wnd_set_icon (gui_window window, const char* path_to_icon) {
+	HANDLE icon_id = LoadImage (NULL, path_to_icon, IMAGE_ICON, 32, 32, LR_LOADFROMFILE);
+	SendMessage (window.handle, WM_SETICON, ICON_BIG, (LPARAM)icon_id);
+}
+
 bool input_is_key_down (gui_window window, unsigned code) {
 	// Returns true the moment the key is pressed
 	bool result = window.input.key == code;

@@ -17,6 +17,8 @@ GUI_MAIN {
 	wnd_set_style (window, S_FIXEDSIZE);
 	window.bg_color = make_color (BACKGROUND_COLOR, 255);
 
+	wnd_set_icon (window, icon_path);
+
 	void* memory = malloc (sizeof (char) * 1024 * 1024 * 10); // 10 MB
 
 	pixel_init (&window, memory);
