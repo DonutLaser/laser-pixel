@@ -461,37 +461,34 @@ static selection_neighbor_info get_selection_info (pixel_app* app, unsigned x, u
 	int new_x = x;
 	int new_y = y;
 
-	--new_y;
-	result.sides[0] = (new_y >= 0) && (app -> selection_grid[new_y][new_x] >= 0);
+	struct offset {
+		int x;
+		int y;
+	};
 
-	++new_y;
-	++new_x;
-	result.sides[1] = (new_x < GRID_TILE_COUNT_X) && (app -> selection_grid[new_y][new_x] >= 0);
+	offset offsets[4] = { { 0, -1 }, { 1, 0 }, { 0, 1 }, { -1, 0 } };
+	for (unsigned i = 0; i < 4; ++i) {
+		new_y += offsets[i].y;
+		new_x += offsets[i].x;
 
-	--new_x;
-	++new_y;
-	result.sides[2] = (new_y < GRID_TILE_COUNT_Y) && app -> selection_grid[new_y][new_x] >= 0;
+		result.sides[i] = BETWEEN (new_y, 0, GRID_TILE_COUNT_Y - 1) &&
+			BETWEEN (new_x, 0, GRID_TILE_COUNT_X - 1) && (app -> selection_grid[new_y][new_x] >= 0);
 
-	--new_y;
-	--new_x;
-	result.sides[3] = (new_x >= 0) && app -> selection_grid[new_y][new_x] >= 0;
+		new_y = y;
+		new_x = x;
+	}
 
-	new_y = y;
-	new_x = x;
+	offset corner_offsets[4] = { { -1, -1 }, { 1, -1 }, { -1, 1 }, { 1, 1 } };
+	for (unsigned i = 0; i < 4; ++i) {
+		new_y += corner_offsets[i].y;
+		new_x += corner_offsets[i].x;
 
-	--new_y;
-	--new_x;
-	result.corners[0] = (new_y >= 0 && new_x >= 0) && (app -> selection_grid[new_y][new_x] >= 0);
+		result.corners[i] = BETWEEN (new_y, 0, GRID_TILE_COUNT_Y - 1) &&
+			BETWEEN (new_x, 0, GRID_TILE_COUNT_X - 1) && (app -> selection_grid[new_y][new_x] >= 0);
 
-	new_x += 2;
-	result.corners[1] = (new_x < GRID_TILE_COUNT_X) && (app -> selection_grid[new_y][new_x] >= 0);
-
-	new_y += 2;
-	new_x -= 2;
-	result.corners[2] = (new_x >= 0 && new_y < GRID_TILE_COUNT_Y) && (app -> selection_grid[new_y][new_x] >= 0);
-
-	new_x += 2;
-	result.corners[3] = (new_x < GRID_TILE_COUNT_X) && (app -> selection_grid[new_y][new_x] >= 0);
+		new_y = y;
+		new_x = x;
+	}
 
 	return result;
 }
