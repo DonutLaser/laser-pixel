@@ -19,6 +19,8 @@ struct mouse_drag {
 
 struct pixel_input {
 	v2 mouse_pos;
+	bool ctrl_pressed;
+	bool shift_pressed;
 	bool lmb_down;
 	bool lmb_up;
 };

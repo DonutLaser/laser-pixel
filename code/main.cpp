@@ -26,6 +26,8 @@ GUI_MAIN {
 		input.mouse_pos = input_get_mouse_position (window);
 		input.lmb_down = input_is_mb_pressed (window, M_LEFT);
 		input.lmb_up = input_is_mb_up (window, M_LEFT);
+		input.ctrl_pressed = input_is_key_pressed (window, K_CTRL);
+		input.shift_pressed = input_is_key_pressed (window, K_SHIFT);
 
 		pixel_update (memory, input, &window);
 

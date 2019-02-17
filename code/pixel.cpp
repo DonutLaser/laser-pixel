@@ -10,6 +10,8 @@
 #define STBI_MSC_SECURE_CRT
 #include "../third_party/stb_image_write.h"
 
+
+
 enum Icon { ICO_FIRST_FRAME, ICO_PREV_FRAME, ICO_PLAY, ICO_PAUSE, ICO_NEXT_FRAME, ICO_LAST_FRAME,
 			ICO_DRAW, ICO_ERASE, ICO_SELECT, ICO_MOVE, ICO_COPY, ICO_PASTE, ICO_CLEAR,
 			ICO_SAVE, ICO_LOAD, ICO_EXPORT, ICO_FULL_SPEED, ICO_HALF_SPEED };
@@ -310,6 +312,78 @@ static bool draw_selectable_rect (rect r, v4 color, v2 mouse_pos, bool mb, bool 
 	gl_draw_rect (r, color, false);
 	return false;
 }
+ 
+static void fill_color (pixel_app* app, int x, int y) {
+	int color_to_change = app -> project.frames[app -> current_frame].grid[y][x];
+	app -> project.frames[app -> current_frame].grid[y][x] = app -> color_index;
+
+	struct coordinates {
+		int x;
+		int y;
+	};
+
+	coordinates coords[GRID_TILE_COUNT_X * GRID_TILE_COUNT_Y];
+	int current_coord = 0;
+
+	int new_x = x;
+	int new_y = y;
+	while (current_coord >= 0) {
+		// For some reason, the loop doesn't terminate when calling this function without a breakpoint,
+		// but it does terminate when a breakpoint is present. current_coord changes from negative to positive
+		// value before the condition check. Some kind of a memory corruption? 
+		// Also, the color_to_change changes seemingly
+		// on its own, no clue why. This prevents the loop from going on infinitely.
+		if (color_to_change == app -> color_index)
+			break;
+
+		new_x += 1;
+		if (new_x < GRID_TILE_COUNT_X) {
+			if (app -> project.frames[app -> current_frame].grid[new_y][new_x] == color_to_change) {
+				app -> project.frames[app -> current_frame].grid[new_y][new_x] = app -> color_index;
+				coords[current_coord++] = { new_x, new_y };
+				continue;
+			}
+		}
+
+		new_x -= 1;
+		new_y += 1;
+		if (new_y < GRID_TILE_COUNT_Y) {
+			if (app -> project.frames[app -> current_frame].grid[new_y][new_x] == color_to_change) {
+		 		app -> project.frames[app -> current_frame].grid[new_y][new_x] = app -> color_index;
+		 		coords[current_coord++] = { new_x, new_y };
+		 		continue;
+		 	}
+		}
+
+		new_x -= 1;
+		new_y -= 1;
+		if (new_x >= 0) {
+		 	if (app -> project.frames[app -> current_frame].grid[new_y][new_x] == color_to_change) {
+		 		app -> project.frames[app -> current_frame].grid[new_y][new_x] = app -> color_index;
+		 		coords[current_coord++] = { new_x, new_y };
+		 		continue;
+		 	}
+		}
+
+		new_x += 1;
+		new_y -= 1;
+		if (new_y >= 0) {
+		 	if (app -> project.frames[app -> current_frame].grid[new_y][new_x] == color_to_change) {
+		 		app -> project.frames[app -> current_frame].grid[new_y][new_x] = app -> color_index;
+		 		coords[current_coord++] = { new_x, new_y };
+		 		continue;
+		 	}
+		}
+
+		if (current_coord != 0) {
+			coordinates last_coords = coords[--current_coord];
+			new_x = last_coords.x;
+			new_y = last_coords.y;
+		}
+		else
+			break;
+	}
+}
 
 static void draw_controls (pixel_app* app, pixel_input input, gui_window window) {
 	v2 start_pos = make_v2 (CONTROLS_POSITION);
@@ -389,8 +463,12 @@ static void draw_frame (pixel_app* app, pixel_input input, gui_window window) {
 			bool is_selected = app -> selection_grid[y][x] >= 0 && app -> current_tool != T_MOVE;
 
 			if (draw_selectable_rect (tile_rect, tile_color, input.mouse_pos, input.lmb_down, is_selected, app -> is_playing)) {
-				if (app -> current_tool == T_DRAW)
-					app -> project.frames[app -> current_frame].grid[y][x] = app -> color_index;
+				if (app -> current_tool == T_DRAW) {
+					if (input.ctrl_pressed)
+						fill_color (app, x, y);
+					else
+						app -> project.frames[app -> current_frame].grid[y][x] = app -> color_index;
+				}
 				else if (app -> current_tool == T_ERASE) 
 					app -> project.frames[app -> current_frame].grid[y][x] = -1;
 				else if (app -> current_tool == T_SELECT) {
