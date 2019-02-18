@@ -92,35 +92,35 @@ static v4 colors[] = {
 
 #define ICON_COUNT 					18
 static const char* icons[ICON_COUNT] = {
-	"W://pixel//data//images//first_frame.png",
-	"W://pixel//data//images//prev_frame.png",
-	"W://pixel//data//images//play.png",
-	"W://pixel//data//images//pause.png",
-	"W://pixel//data//images//next_frame.png",
-	"W://pixel//data//images//last_frame.png",
-	"W://pixel//data//images//draw.png",
-	"W://pixel//data//images//erase.png",
-	"W://pixel//data//images//select.png",
-	"W://pixel//data//images//move.png",
-	"W://pixel//data//images//copy.png",
-	"W://pixel//data//images//paste.png",
-	"W://pixel//data//images//clear.png",
-	"W://pixel//data//images//save.png",
-	"W://pixel//data//images//load.png",
-	"W://pixel//data//images//export.png",
-	"W://pixel//data//images//full_speed.png",
-	"W://pixel//data//images//half_speed.png"
+	"..//data//images//first_frame.png",
+	"..//data//images//prev_frame.png",
+	"..//data//images//play.png",
+	"..//data//images//pause.png",
+	"..//data//images//next_frame.png",
+	"..//data//images//last_frame.png",
+	"..//data//images//draw.png",
+	"..//data//images//erase.png",
+	"..//data//images//select.png",
+	"..//data//images//move.png",
+	"..//data//images//copy.png",
+	"..//data//images//paste.png",
+	"..//data//images//clear.png",
+	"..//data//images//save.png",
+	"..//data//images//load.png",
+	"..//data//images//export.png",
+	"..//data//images//full_speed.png",
+	"..//data//images//half_speed.png"
 };
 
 #define CURSOR_COUNT				4
 static const char* cursors[CURSOR_COUNT] = { 
-	"W://pixel//data//cursors//draw_cursor.cur",
-	"W://pixel//data//cursors//erase_cursor.cur",
-	"W://pixel//data//cursors//select_cursor.cur",
-	"W://pixel//data//cursors//move_cursor.cur"
+	"..//data//cursors//draw_cursor.cur",
+	"..//data//cursors//erase_cursor.cur",
+	"..//data//cursors//select_cursor.cur",
+	"..//data//cursors//move_cursor.cur"
 };
 
-static const char* icon_path = "W://pixel//data//images/icon.ico";
+static const char* icon_path = "..//data//images/icon.ico";
 
 #define MAX_FRAME_COUNT				256	
 
