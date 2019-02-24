@@ -34,3 +34,6 @@ At the bottom of the window there are additional buttons providing such function
 
 ![Buttons](data/images/screenshots/additionalButtons.png)
 
+## Instalation
+Simply go to Releases, download the latest version of the program and the follow the instructions of the installer.
+
